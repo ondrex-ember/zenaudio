@@ -45,6 +45,65 @@
         .lib-item:hover { background: #2c2c2c; border-left: 3px solid var(--primary); }
         .lib-item strong { display: block; color: var(--primary); font-size: 0.95em; }
         #status { font-size: 0.8em; margin-left: auto; color: #888; }
+		
+		/* --- PATIČKA (FOOTER) --- */
+		#app-footer {
+			position: fixed;
+			bottom: 0;
+			left: 0;
+			width: 100%;
+			height: 60px; /* Výška patičky */
+			background-color: #000000;
+			border-top: 1px solid #222;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			z-index: 100;
+			
+			/* Stejný efekt rozmazání jako zbytek aplikace před přihlášením */
+			filter: blur(10px); 
+			opacity: 0;
+			transition: 0.5s;
+			pointer-events: none;
+		}
+
+		/* Zobrazení patičky po přihlášení */
+		body.logged-in #app-footer {
+			filter: none;
+			opacity: 1;
+			pointer-events: all;
+		}
+
+		/* Odkazy v patičce */
+		.footer-links {
+			margin-bottom: 5px;
+			font-size: 0.9em;
+		}
+
+		.footer-links a {
+			color: #e0e0e0;
+			text-decoration: none;
+			font-weight: 600;
+			margin: 0 10px;
+			transition: color 0.2s;
+		}
+
+		.footer-links a:hover {
+			color: var(--primary); /* #00e5ff */
+		}
+
+		.footer-subtext {
+			color: #666;
+			font-size: 0.75em;
+			font-family: 'Segoe UI', sans-serif;
+		}
+
+		/* ÚPRAVA HLAVNÍHO KONTEJNERU */
+		/* Musíme ho trochu zmenšit, aby nezasahoval pod patičku */
+		.container {
+			height: calc(100vh - 90px) !important; /* Původně bylo 95% */
+		}
     </style>
 </head>
 <body>
@@ -101,6 +160,22 @@
             <div id="library" class="lib-list"></div>
         </div>
     </div>
+
+<footer id="app-footer">
+    <div class="footer-links">
+        <a href="https://www.ember-pa.cz/" target="_blank">🔥 Ember PA</a>
+        <span style="color:#444">|</span>
+        <a href="https://open.spotify.com/user/ondrex?si=99fddbc102c44f73" target="_blank">🎵 Spotify</a>
+        <span style="color:#444">|</span>
+        <a href="https://ondrex-ember.github.io/doupe-2/" target="_blank">👾 Doupě 2</a>
+		<span style="color:#444">|</span>
+        <a href="https://ondrex-ember.github.io/tech-1000-piv/" target="_blank">Těch 1000 piv 🍺 s Ondrexem</a>
+				
+    </div>
+    <div class="footer-subtext">
+        Vyvíjeno s <span style="color: #e91e63;">❤️</span> v Novém Boru by <strong>Ondrex</strong>
+    </div>
+</footer>
 
 <script>
     // ==========================================
@@ -412,6 +487,7 @@ noise.start(); noise.stop(ctx.currentTime + 2);`
     }
 
     function setStatus(msg) { document.getElementById('status').innerText = msg; }
+
 </script>
 
 </body>
