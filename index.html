@@ -4,491 +4,425 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Audio API Lab (Cloud Auth) by Ondrex & some LLMs</title>
-    <style>
-        :root { --primary: #00e5ff; --bg: #121212; --panel: #1e1e1e; --text: #e0e0e0; }
-        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; height: 100vh; box-sizing: border-box; overflow: hidden; }
-        
-        /* LOGIN */
-        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f0f0f; z-index: 9999; display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 20px; }
-        .login-box { background: #1e1e1e; padding: 30px; border-radius: 8px; border: 1px solid #333; text-align: center; box-shadow: 0 0 30px rgba(0, 229, 255, 0.1); }
-        .login-input { padding: 10px; border-radius: 4px; border: 1px solid #444; background: #2d2d2d; color: white; width: 200px; margin-bottom: 10px; }
-        .login-btn { background: var(--primary); color: #000; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        .login-btn:hover { background: #00b8cc; }
-        
-        #app-content { filter: blur(10px); pointer-events: none; transition: 0.5s; opacity: 0; }
-        body.logged-in #app-content { filter: none; pointer-events: all; opacity: 1; }
-        body.logged-in #login-overlay { display: none; }
+<style>
+    :root { --primary: #00e5ff; --bg: #121212; --panel: #1e1e1e; --text: #e0e0e0; --danger: #ff5252; --warn: #ffd740; }
+    body { font-family: 'Segoe UI', Roboto, monospace; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; height: 100vh; box-sizing: border-box; overflow: hidden; }
 
-        /* STANDARD */
-        .container { display: grid; grid-template-columns: 3fr 1fr; gap: 20px; height: 95%; }
-        .main-panel { display: flex; flex-direction: column; gap: 15px; height: 100%; }
-        h1 { margin: 0; font-weight: 300; letter-spacing: 1px; color: var(--primary); font-size: 1.5rem; }
-        .editor-wrapper { flex-grow: 1; position: relative; border: 1px solid #333; border-radius: 8px; overflow: hidden; }
-        textarea { width: 100%; height: 100%; background: #1a1a1a; color: #a9dc76; border: none; padding: 15px; font-family: 'Consolas', 'Monaco', monospace; font-size: 14px; resize: none; outline: none; box-sizing: border-box; }
-        canvas { width: 100%; height: 120px; background: #000; border-radius: 6px; border: 1px solid #333; }
-        .controls { background: var(--panel); padding: 15px; border-radius: 8px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; border: 1px solid #333; }
-        input[type="text"] { background: #111; border: 1px solid #444; color: white; padding: 8px; border-radius: 4px; flex-grow: 1; }
-        select { background: #333; color: white; border: 1px solid #555; padding: 8px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        select:hover { background: #444; }
-        .vol-control { display: flex; align-items: center; gap: 8px; background: #2a2a2a; padding: 5px 10px; border-radius: 4px; }
-        .vol-control label { font-size: 0.7em; font-weight: bold; color: #888; }
-        input[type=range] { width: 80px; accent-color: var(--primary); cursor: pointer; }
-        button { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; color: white; transition: 0.2s; }
-        button:hover { filter: brightness(1.2); }
-        .btn-play { background: #2e7d32; }
-        .btn-stop { background: #c62828; }
-        .btn-save { background: #1565c0; }
-        .btn-load { background: #ef6c00; width: 100%; margin-bottom: 10px; }
-        .library-panel { background: var(--panel); border: 1px solid #333; border-radius: 8px; padding: 15px; display: flex; flex-direction: column; overflow: hidden; }
-        .lib-list { overflow-y: auto; flex-grow: 1; padding-right: 5px; }
-        .lib-item { padding: 10px; border-bottom: 1px solid #333; cursor: pointer; transition: 0.2s; }
-        .lib-item:hover { background: #2c2c2c; border-left: 3px solid var(--primary); }
-        .lib-item strong { display: block; color: var(--primary); font-size: 0.95em; }
-        #status { font-size: 0.8em; margin-left: auto; color: #888; }
-		
-		/* --- PATIČKA (FOOTER) --- */
-		#app-footer {
-			position: fixed;
-			bottom: 0;
-			left: 0;
-			width: 100%;
-			height: 60px; /* Výška patičky */
-			background-color: #000000;
-			border-top: 1px solid #222;
-			display: flex;
-			flex-direction: column;
-			justify-content: center;
-			align-items: center;
-			z-index: 100;
-			
-			/* Stejný efekt rozmazání jako zbytek aplikace před přihlášením */
-			filter: blur(10px); 
-			opacity: 0;
-			transition: 0.5s;
-			pointer-events: none;
-		}
+    /* LAYOUT */
+    .container { display: grid; grid-template-columns: 3fr 1.2fr; gap: 20px; height: calc(100vh - 90px); }
+    .main-panel { display: flex; flex-direction: column; gap: 15px; height: 100%; }
+    .side-panel { display: flex; flex-direction: column; gap: 15px; height: 100%; }
 
-		/* Zobrazení patičky po přihlášení */
-		body.logged-in #app-footer {
-			filter: none;
-			opacity: 1;
-			pointer-events: all;
-		}
+    h1 { margin: 0; font-weight: 300; letter-spacing: 2px; color: var(--primary); text-transform: uppercase; font-size: 1.2rem; }
+    
+    /* DASHBOARD (Nové) */
+    .dashboard { background: #181818; border: 1px solid #333; border-radius: 6px; padding: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    
+    /* VIZUALIZACE */
+    .viz-container { position: relative; flex-grow: 0; height: 160px; background: #000; border: 1px solid #333; border-radius: 6px; overflow: hidden; }
+    canvas { width: 100%; height: 100%; display: block; }
+    .viz-select { position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.7); color: var(--primary); border: 1px solid #444; font-size: 0.7em; cursor: pointer; }
 
-		/* Odkazy v patičce */
-		.footer-links {
-			margin-bottom: 5px;
-			font-size: 0.9em;
-		}
+    /* VU METERS */
+    .vu-meter { display: flex; gap: 4px; height: 100%; align-items: flex-end; padding: 5px; background: #111; border-radius: 4px; border: 1px solid #333; }
+    .vu-bar { width: 15px; background: #222; height: 100%; position: relative; border-radius: 2px; overflow: hidden; }
+    .vu-level { position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(to top, #00e5ff 60%, #ffd740 80%, #ff5252 100%); transition: height 0.05s; }
+    
+    /* MAKRO OVLADAČE */
+    .macro-box { display: flex; flex-direction: column; gap: 5px; }
+    .macro-row { display: flex; align-items: center; gap: 10px; font-size: 0.8em; color: #888; }
+    .macro-row input { flex-grow: 1; accent-color: var(--primary); }
+    .macro-val { width: 30px; text-align: right; color: var(--primary); font-family: monospace; }
 
-		.footer-links a {
-			color: #e0e0e0;
-			text-decoration: none;
-			font-weight: 600;
-			margin: 0 10px;
-			transition: color 0.2s;
-		}
+    /* EDITOR & KNIHOVNA */
+    .editor-wrapper { flex-grow: 1; position: relative; border: 1px solid #333; border-radius: 6px; overflow: hidden; }
+    textarea { width: 100%; height: 100%; background: #161616; color: #a9dc76; border: none; padding: 15px; font-family: 'Consolas', monospace; font-size: 13px; resize: none; outline: none; }
+    
+    .library-panel { background: var(--panel); border: 1px solid #333; border-radius: 6px; flex-grow: 1; overflow: hidden; display: flex; flex-direction: column; }
+    .lib-list { overflow-y: auto; flex-grow: 1; }
+    .lib-item { padding: 8px 12px; border-bottom: 1px solid #2a2a2a; cursor: pointer; font-size: 0.9em; display:flex; justify-content:space-between; }
+    .lib-item:hover { background: #2a2a2a; border-left: 2px solid var(--primary); }
+    .lib-item small { color: #666; }
 
-		.footer-links a:hover {
-			color: var(--primary); /* #00e5ff */
-		}
+    /* OSTATNÍ */
+    .controls { background: var(--panel); padding: 10px; border-radius: 6px; display: flex; gap: 10px; align-items: center; border: 1px solid #333; }
+    button { padding: 6px 14px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; color: white; background: #333; transition: 0.2s; font-size: 0.85em; }
+    button:hover { background: #555; }
+    .btn-play { background: #2e7d32; } .btn-stop { background: #c62828; } .btn-save { background: #1565c0; }
+    input[type=text] { background: #111; border: 1px solid #444; color: white; padding: 6px; border-radius: 4px; flex-grow: 1; }
+    select { background: #222; color: white; border: 1px solid #444; padding: 5px; }
 
-		.footer-subtext {
-			color: #666;
-			font-size: 0.75em;
-			font-family: 'Segoe UI', sans-serif;
-		}
-
-		/* ÚPRAVA HLAVNÍHO KONTEJNERU */
-		/* Musíme ho trochu zmenšit, aby nezasahoval pod patičku */
-		.container {
-			height: calc(100vh - 90px) !important; /* Původně bylo 95% */
-		}
-    </style>
+    /* FOOTER & LOGIN (Zachováno) */
+    #app-footer { position: fixed; bottom: 0; left: 0; width: 100%; height: 60px; background: #000; border-top: 1px solid #222; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; filter: blur(10px); opacity: 0; pointer-events: none; transition: 0.5s; }
+    body.logged-in #app-footer { filter: none; opacity: 1; pointer-events: all; }
+    .footer-links a { color: #888; text-decoration: none; margin: 0 10px; font-size: 0.9em; }
+    .footer-links a:hover { color: var(--primary); }
+    #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0a0a0a; z-index: 999; display: flex; justify-content: center; align-items: center; flex-direction: column; }
+    #app-content { filter: blur(10px); opacity: 0; transition: 0.5s; }
+    body.logged-in #app-content { filter: none; opacity: 1; }
+	
+	/* Schová přihlašovací okno po úspěšném přihlášení */
+	body.logged-in #login-overlay { 
+    display: none; 
+}
+</style>
 </head>
 <body>
 
     <div id="login-overlay">
-        <div class="login-box">
-            <h2 style="color:var(--primary); margin-top:0;">JOUZA Audio Zen Lab</h2>
-            <p style="color:#aaa; font-size:0.9em; margin-bottom:20px;">Ověření přes Cloud</p>
-            <p style="color:#aaa; font-size:0.9em; margin-bottom:20px;">👩🏻‍💻📓✍🏻💡🧪</p>
-            <input type="password" id="passwordInput" class="login-input" placeholder="Heslo...">
-            <br>
-            <button id="loginBtn" onclick="cloudLogin()" class="login-btn">Ověřit</button>
-            <p id="login-error" style="color:#ff5252; font-size:0.8em; margin-top:10px; display:none;"></p>
-        </div>
+        <h2 style="color:var(--primary); font-weight:300; letter-spacing:2px;">AUDIO LAB <span style="font-size:0.5em; opacity:0.5">v2.0</span></h2>
+        <input type="password" id="passwordInput" style="padding:10px; background:#222; border:1px solid #444; color:white; text-align:center; margin:15px 0;" placeholder="Přístupový klíč">
+        <button onclick="cloudLogin()" style="background:var(--primary); color:black;">VSTOUPIT</button>
+        <p id="login-error" style="color:var(--danger); font-size:0.8em; margin-top:10px; height:20px;"></p>
     </div>
 
     <div id="app-content" class="container">
+        
         <div class="main-panel">
             <div style="display:flex; justify-content:space-between; align-items:center;">
-                <h1>Audio API Lab</h1>
-                <div id="status">Připraveno.</div>
+                <h1>Web Audio API Lab</h1>
+                <div id="status" style="font-size:0.8em; color:#666; font-family:monospace;">READY</div>
             </div>
 
-            <div class="controls" style="margin-bottom: 0; border-bottom: none; border-radius: 8px 8px 0 0; background: #252525;">
-                <label style="color:#aaa; font-size:0.9em;">Rychlá volba:</label>
-                <select id="presetSelect" onchange="loadPreset()">
-                    <option value="" disabled selected>-- Vyberte zvuk --</option>
-                    <option value="bell">🔔 FM Zvon</option>
-                    <option value="fire">🔥 Hluboký Oheň</option>
-                    <option value="zen">🧘 Zen Mísa (432 Hz)</option>
-                    <option value="noise">💨 Bílý šum</option>
-                </select>
+            <div class="dashboard">
+                <div class="viz-container">
+                    <select class="viz-select" id="vizType" onchange="vizMode=this.value">
+                        <option value="wave">⚡ Osciloskop</option>
+                        <option value="bar">📊 Spektrum</option>
+                    </select>
+                    <canvas id="visualizer"></canvas>
+                </div>
+
+                <div style="display:flex; gap:10px;">
+                    <div class="vu-meter">
+                        <div class="vu-bar"><div id="vuL" class="vu-level" style="height:0%"></div></div>
+                        <div class="vu-bar"><div id="vuR" class="vu-level" style="height:0%"></div></div>
+                        <div style="writing-mode: vertical-rl; font-size: 0.7em; color:#555; text-align:center;">MASTER</div>
+                    </div>
+
+                    <div class="macro-box" style="flex-grow:1;">
+                        <div style="font-size:0.7em; color:var(--primary); margin-bottom:5px;">🎛️ MAKRO PARAMETRY (Live)</div>
+                        
+                        <div class="macro-row">
+                            <span>A</span>
+                            <input type="range" id="macA" min="0" max="1000" value="50" oninput="updateMacros()">
+                            <span id="valA" class="macro-val">50</span>
+                        </div>
+                        <div class="macro-row">
+                            <span>B</span>
+                            <input type="range" id="macB" min="0" max="100" value="50" oninput="updateMacros()">
+                            <span id="valB" class="macro-val">0.5</span>
+                        </div>
+                        <div class="macro-row">
+                            <span>C</span>
+                            <input type="range" id="macC" min="0" max="1" step="0.01" value="0.5" oninput="updateMacros()">
+                            <span id="valC" class="macro-val">0.5</span>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div class="editor-wrapper" style="border-radius: 0 0 8px 8px;">
-                <textarea id="editor" spellcheck="false" placeholder="Kód..."></textarea>
+            <div class="editor-wrapper">
+                <textarea id="editor" spellcheck="false" placeholder="// Zde pište svůj kód... Použijte pA, pB, pC pro ovládání makry!"></textarea>
             </div>
-
-            <canvas id="visualizer"></canvas>
 
             <div class="controls">
-                <input type="text" id="fnName" placeholder="Název experimentu">
-                <div class="vol-control">
-                    <label>VOL</label>
-                    <input type="range" id="masterVolume" min="0" max="1" step="0.01" value="0.5">
-                </div>
-                <button class="btn-play" onclick="playAudio()">▶ Přehrát</button>
-                <button class="btn-stop" onclick="stopAudio()">⏹ Stop</button>
-                <button class="btn-save" onclick="saveToSheets()">💾 Uložit</button>
+                <button class="btn-play" onclick="playAudio()">▶ RUN</button>
+                <button class="btn-stop" onclick="stopAudio()">⏹ STOP</button>
+                <input type="range" id="masterVolume" min="0" max="1" step="0.01" value="0.5" style="width:100px;">
+                <input type="text" id="fnName" placeholder="Název experimentu...">
+                <button class="btn-save" onclick="saveToSheets()">💾 ULOŽIT</button>
             </div>
         </div>
 
-        <div class="library-panel">
-            <button class="btn-load" onclick="loadFromSheets()">🔄 Načíst Cloud Knihovnu</button>
-            <div id="library" class="lib-list"></div>
+        <div class="side-panel">
+            <div style="background:#222; padding:10px; border-radius:6px; border:1px solid #333;">
+                <select id="presetSelect" onchange="loadPreset()" style="width:100%;">
+                    <option value="" disabled selected>📂 Presety</option>
+                    <option value="fire">🔥 Hluboký Oheň</option>
+                    <option value="macro">🎛️ Test Maker (Novinka)</option>
+                    <option value="bell">🔔 FM Zvon</option>
+                    <option value="zen">🧘 Zen Mísa</option>
+                </select>
+            </div>
+            
+            <div class="library-panel">
+                <div style="padding:10px; border-bottom:1px solid #333; font-size:0.8em; color:#888;">
+                    CLOUD KNIHOVNA
+                    <button onclick="loadFromSheets()" style="float:right; padding:2px 8px; font-size:0.9em;">↻</button>
+                </div>
+                <div id="library" class="lib-list"></div>
+            </div>
         </div>
     </div>
 
-<footer id="app-footer">
-    <div class="footer-links">
-        <a href="https://www.ember-pa.cz/" target="_blank">🔥 Ember PA</a>
-        <span style="color:#444">|</span>
-        <a href="https://open.spotify.com/user/ondrex?si=99fddbc102c44f73" target="_blank">🎵 Spotify</a>
-        <span style="color:#444">|</span>
-        <a href="https://ondrex-ember.github.io/doupe-2/" target="_blank">👾 Doupě 2</a>
-		<span style="color:#444">|</span>
-        <a href="https://ondrex-ember.github.io/tech-1000-piv/" target="_blank">Těch 1000 piv 🍺 s Ondrexem</a>
-				
-    </div>
-    <div class="footer-subtext">
-        Vyvíjeno s <span style="color: #e91e63;">❤️</span> v Novém Boru by <strong>Ondrex</strong>
-    </div>
-</footer>
+    <footer id="app-footer">
+        <div class="footer-links">
+            <a href="https://emberpa.cz" target="_blank">🔥 Ember PA</a> | 
+            <a href="#" target="_blank">🎵 Spotify</a> | 
+            <a href="#" target="_blank">👾 Doupě 2</a>
+        </div>
+        <div style="color:#666; font-size:0.75em;">Vyvíjeno s <span style="color:#e91e63">❤️</span> v Novém Boru by <strong>Ondrex</strong></div>
+    </footer>
 
 <script>
     // ==========================================
-    // KONFIGURACE (ZDE VLOŽTE URL)
+    // 1. KONFIGURACE A PROMĚNNÉ
     // ==========================================
+    const SHEETS_URL = "https://script.google.com/macros/s/AKfycbwe8O3qqe-C0yLm08EDFZGqHkEIdswZ6DCAuTd4rSMM90P5bp1HZCGw4G9jg7gU0W2I/exec"; 
     
-    // Zde musí být ta nová URL skriptu, kterou jste získali v KROKU 1
-    const SHEETS_URL = "https://script.google.com/macros/s/AKfycbzCyQhKmEVvX31HdbUC4EFFUw45l-IfvrrjdwMaaGquAdWZpbnc1sxEM-TzUhn-kkwQ/exec"; 
-
-    // ==========================================
-    // LOGIKA PŘIHLÁŠENÍ (PŘES CLOUD)
-    // ==========================================
-
-    async function cloudLogin() {
-        const input = document.getElementById('passwordInput').value;
-        const btn = document.getElementById('loginBtn');
-        const err = document.getElementById('login-error');
-
-        if (!input) return;
-
-        btn.innerText = "Ověřuji...";
-        err.style.display = 'none';
-
-        try {
-            // Posíláme heslo do Google Skriptu
-            const response = await fetch(SHEETS_URL, {
-                method: 'POST',
-                // Důležité: Tady už nepoužíváme 'no-cors', protože chceme číst odpověď!
-                // Pokud je Apps Script nastaven jako "Anyone", CORS by měl projít.
-                body: JSON.stringify({ action: "login", password: input })
-            });
-            
-            const data = await response.json();
-
-		if (data.status === 'success') {
-            unlockApp();
-            sessionStorage.setItem('cloudAuth', 'true');
-        } else {
-            // ZMĚNA: Teď vypíšeme přesně to, co poslal server (tu ladící hlášku)
-            err.innerText = data.message || "Nesprávné heslo (bez detailů)."; 
-            err.style.display = 'block';
-            btn.innerText = "Ověřit";
-        }
-        } catch (e) {
-            console.error(e);
-            err.innerText = "Chyba spojení se serverem.";
-            err.style.display = 'block';
-            btn.innerText = "Ověřit";
-        }
-    }
-
-    function unlockApp() {
-        document.body.classList.add('logged-in');
-        document.getElementById('presetSelect').value = "fire";
-        loadPreset();
-    }
-
-    // Auto-login (pokud už bylo ověřeno v tomto sezení)
-    if (sessionStorage.getItem('cloudAuth') === 'true') {
-        unlockApp();
-    }
-
-    document.getElementById('passwordInput').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') cloudLogin();
-    });
-
-
-    // ==========================================
-    // APLIKACE (PRESETS & AUDIO)
-    // ==========================================
-
-    const PRESETS = {
-        bell: `// --- FM ZVON ---
-const t = ctx.currentTime; const freq = 400; 
-const osc1 = ctx.createOscillator(); const osc1Gain = ctx.createGain(); 
-osc1.type = 'sine'; osc1.frequency.value = freq * 1.43; 
-const osc2 = ctx.createOscillator(); const osc2Gain = ctx.createGain(); 
-osc2.type = 'sine'; osc2.frequency.value = freq; 
-osc1.connect(osc1Gain); osc1Gain.connect(osc2.frequency); 
-osc2.connect(osc2Gain); osc2Gain.connect(destination); 
-osc2Gain.gain.setValueAtTime(0, t); osc2Gain.gain.linearRampToValueAtTime(0.5, t + 0.02); 
-osc2Gain.gain.exponentialRampToValueAtTime(0.001, t + 3.0); 
-osc1Gain.gain.setValueAtTime(1000, t); osc1Gain.gain.exponentialRampToValueAtTime(10, t + 1.5); 
-osc1.start(t); osc2.start(t); osc1.stop(t + 3.5); osc2.stop(t + 3.5);`,
-
-        fire: `// --- FINAL OHEŇ ---
-const t = ctx.currentTime;
-function makeDistortion(amount) { 
-    const k = amount, n = 44100, curve = new Float32Array(n), deg = Math.PI / 180;
-    for (let i = 0; i < n; ++i) { const x = i * 2 / n - 1; curve[i] = (3 + k) * x * 20 * deg / (Math.PI + k * Math.abs(x)); }
-    return curve;
-}
-function createNoise(type) {
-    const bs = ctx.sampleRate * 2, buf = ctx.createBuffer(1, bs, ctx.sampleRate), d = buf.getChannelData(0);
-    let last = 0;
-    for (let i = 0; i < bs; i++) {
-        const w = Math.random() * 2 - 1;
-        if (type === 'brown') { d[i] = (last + (0.02 * w)) / 1.02; last = d[i]; d[i] *= 3.5; } else { d[i] = w; }
-    } return buf;
-}
-
-const masterInput = ctx.createGain();
-const dist = ctx.createWaveShaper(); dist.curve = makeDistortion(40); dist.oversample = '4x';
-const tremolo = ctx.createGain();
-const reverb = ctx.createConvolver(); 
-const revWet = ctx.createGain(); revWet.gain.value = 0.4;
-const revDry = ctx.createGain(); revDry.gain.value = 1.0;
-
-const len = ctx.sampleRate * 2.5, imp = ctx.createBuffer(2, len, ctx.sampleRate);
-for(let i=0;i<len;i++) { let n=i/len; let v=(Math.random()*2-1)*Math.pow(1-n,3); imp.getChannelData(0)[i]=v; imp.getChannelData(1)[i]=v; }
-reverb.buffer = imp;
-
-masterInput.connect(dist); dist.connect(tremolo);
-tremolo.connect(reverb); tremolo.connect(revDry);
-reverb.connect(revWet); revWet.connect(destination); revDry.connect(destination);
-
-const tremLfo = ctx.createOscillator(); tremLfo.frequency.value = 5;
-const tremDepth = ctx.createGain(); tremDepth.gain.value = 0.5;
-const speedMod = ctx.createOscillator(); speedMod.frequency.value = 0.5; 
-const speedDepth = ctx.createGain(); speedDepth.gain.value = 4;
-speedMod.connect(speedDepth); speedDepth.connect(tremLfo.frequency);
-tremLfo.connect(tremDepth); tremDepth.connect(tremolo.gain);
-speedMod.start(t); tremLfo.start(t);
-
-const phaserIn = ctx.createGain();
-const dry = ctx.createGain(); dry.gain.value=0.6; 
-const wet = ctx.createGain(); wet.gain.value=0.4;
-const fil = [];
-for(let i=0;i<4;i++) { const f=ctx.createBiquadFilter(); f.type='allpass'; f.freq=1000; fil.push(f); if(i==0) phaserIn.connect(f); else fil[i-1].connect(f); }
-const pLfo = ctx.createOscillator(); pLfo.frequency.value=2;
-const pDep = ctx.createGain(); pDep.gain.value=400;
-pLfo.connect(pDep); fil.forEach(f=>pDep.connect(f.frequency)); pLfo.start(t);
-
-phaserIn.connect(dry); dry.connect(masterInput);
-fil[3].connect(wet); wet.connect(masterInput);
-
-const rum = ctx.createBufferSource(); rum.buffer = createNoise('brown'); rum.loop=true;
-const rFil = ctx.createBiquadFilter(); rFil.type='lowpass'; rFil.frequency.value=180;
-const rG = ctx.createGain(); rG.gain.value=0.8;
-const br = ctx.createOscillator(); br.frequency.value=0.2; 
-const brG = ctx.createGain(); brG.gain.value=0.2;
-br.connect(brG); brG.connect(rG.gain);
-rum.connect(rFil); rFil.connect(rG); rG.connect(phaserIn);
-rum.start(t); br.start(t);
-
-const iv = setInterval(()=>{
-  if(ctx.state==='closed'){clearInterval(iv);return;}
-  if(Math.random()>0.9){
-     const o=ctx.createOscillator(); o.type='sawtooth'; o.frequency.value=50+Math.random()*100;
-     const f=ctx.createBiquadFilter(); f.type='highpass'; f.frequency.value=1500;
-     const g=ctx.createGain(); g.gain.setValueAtTime(0,ctx.currentTime);
-     g.gain.linearRampToValueAtTime(0.5,ctx.currentTime+0.002); g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.05);
-     o.connect(f); f.connect(g); g.connect(phaserIn); o.start(); o.stop(ctx.currentTime+0.1);
-  }
-},200);`,
-
-        zen: `// --- ZEN MÍSA ---
-const t = ctx.currentTime; const base = 432;
-const layer = (f, v, d, ms, md) => {
-    const o = ctx.createOscillator(); const g = ctx.createGain(); 
-    const lfo = ctx.createOscillator(); const lg = ctx.createGain();
-    o.frequency.value = f; lfo.frequency.value = ms; lg.gain.value = md;
-    lfo.connect(lg); lg.connect(o.frequency);
-    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + 0.1); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
-    o.connect(g); g.connect(destination); o.start(t); lfo.start(t); o.stop(t + d); lfo.stop(t + d);
-};
-layer(base, 0.2, 10, 0.2, 0.5); layer(base*2, 0.1, 8, 0.1, 0.3); layer(base*0.5, 0.15, 12, 0.1, 0.2);`,
-
-        noise: `// --- BÍLÝ ŠUM ---
-const bufSize = ctx.sampleRate * 2; const buffer = ctx.createBuffer(1, bufSize, ctx.sampleRate);
-const data = buffer.getChannelData(0);
-for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
-const noise = ctx.createBufferSource(); noise.buffer = buffer; noise.loop = true;
-const gain = ctx.createGain(); gain.gain.value = 0.05;
-noise.connect(gain); gain.connect(destination);
-noise.start(); noise.stop(ctx.currentTime + 2);`
-    };
-
-    function loadPreset() {
-        const key = document.getElementById('presetSelect').value;
-        if (PRESETS[key]) {
-            document.getElementById('editor').value = PRESETS[key];
-            document.getElementById('fnName').value = document.getElementById('presetSelect').options[document.getElementById('presetSelect').selectedIndex].text;
-        }
-    }
-
-    let audioCtx = null;
-    let masterGain = null;
-    let analyser = null;
-    let animationId = null;
+    let audioCtx, masterGain, analyser, animationId;
     let activeIntervals = [];
+    let vizMode = 'wave';
+    window.MACROS = { A: 50, B: 0.5, C: 0.5 };
 
+    // AKTUALIZACE MAKRO OVLADAČŮ
+    function updateMacros() {
+        const a = parseFloat(document.getElementById('macA').value);
+        const b = parseFloat(document.getElementById('macB').value) / 100;
+        const c = parseFloat(document.getElementById('macC').value);
+        
+        document.getElementById('valA').innerText = a;
+        document.getElementById('valB').innerText = b.toFixed(2);
+        document.getElementById('valC').innerText = c.toFixed(2);
+        
+        window.MACROS = { A: a, B: b, C: c };
+    }
+
+    // ==========================================
+    // 2. KONZOLE A DIAGNOSTIKA
+    // ==========================================
+    function logToConsole(msg, type = 'info') {
+        const con = document.getElementById('consoleOutput');
+        if (!con) { 
+            console.log("> " + msg); 
+            return; 
+        }
+        
+        const time = new Date().toLocaleTimeString();
+        con.innerText = "[" + time + "] " + msg;
+        con.className = 'console-box';
+        if (type === 'error') con.classList.add('error');
+        if (type === 'success') con.classList.add('success');
+    }
+
+    function checkBrackets(code) {
+        const openCb = (code.match(/{/g) || []).length;
+        const closeCb = (code.match(/}/g) || []).length;
+        if (openCb !== closeCb) return "Nesedí složené závorky { }. Otevřeno: " + openCb + ", Zavřeno: " + closeCb;
+        
+        const openRb = (code.match(/\(/g) || []).length;
+        const closeRb = (code.match(/\)/g) || []).length;
+        if (openRb !== closeRb) return "Nesedí kulaté závorky ( ). Otevřeno: " + openRb + ", Zavřeno: " + closeRb;
+        
+        return null;
+    }
+
+    // ==========================================
+    // 3. AUDIO ENGINE
+    // ==========================================
     function initAudio() {
         if (!audioCtx) {
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            masterGain = audioCtx.createGain();
             analyser = audioCtx.createAnalyser();
             analyser.fftSize = 2048;
-            masterGain = audioCtx.createGain();
+            analyser.smoothingTimeConstant = 0.85;
+            
+            masterGain.connect(analyser);
+            analyser.connect(audioCtx.destination);
             masterGain.gain.value = document.getElementById('masterVolume').value;
-            analyser.connect(masterGain);
-            masterGain.connect(audioCtx.destination);
-            setupVisualizer();
+            visualize();
         }
     }
 
-    const originalSetInterval = window.setInterval;
-    window.setInterval = function(func, delay) {
-        const id = originalSetInterval(func, delay);
-        activeIntervals.push(id);
-        return id;
-    };
-
     function playAudio() {
-        stopAudio(); 
+        stopAudio();
+        const code = document.getElementById('editor').value;
+
+        // Statická kontrola
+        const bracketError = checkBrackets(code);
+        if (bracketError) { 
+            logToConsole("SYNTAX ERROR: " + bracketError, 'error'); 
+            return; 
+        }
+
+        // Test syntaxe nanečisto
+        try { 
+            new Function('ctx', 'destination', 'window', code); 
+        } catch (e) { 
+            logToConsole("SYNTAX ERROR: " + e.message, 'error'); 
+            return; 
+        }
+
         initAudio();
         if (audioCtx.state === 'suspended') audioCtx.resume();
-        const appDestination = audioCtx.createGain();
-        appDestination.connect(analyser);
-        const userCode = document.getElementById('editor').value;
+
+        const userOut = audioCtx.createGain();
+        userOut.connect(masterGain);
+
         try {
-            const compatibilityWrapper = `const audioContext = ctx; const masterGain = destination; ${userCode}`;
-            const runUserCode = new Function('ctx', 'destination', compatibilityWrapper);
-            runUserCode(audioCtx, appDestination);
-            setStatus("Hraje...");
-        } catch (err) {
-            console.error(err);
-            alert("CHYBA V KÓDU:\n" + err.message);
+            const wrapper = "const audioContext = ctx; const destination = userOut; const getA = () => window.MACROS.A; const getB = () => window.MACROS.B; const getC = () => window.MACROS.C; " + code;
+            const run = new Function('ctx', 'userOut', 'window', wrapper);
+            run(audioCtx, userOut, window);
+            logToConsole("Kompilace úspěšná. Audio běží.", "success");
+            document.getElementById('status').innerText = "PLAYING";
+        } catch (e) {
+            logToConsole("RUNTIME ERROR: " + e.message, 'error');
+            stopAudio();
         }
     }
 
     function stopAudio() {
-        activeIntervals.forEach(id => clearInterval(id));
+        activeIntervals.forEach(clearInterval);
         activeIntervals = [];
         if (audioCtx) {
-            audioCtx.close().then(() => { audioCtx = null; setStatus("Zastaveno."); });
+            audioCtx.close().then(() => { 
+                audioCtx = null; 
+                document.getElementById('status').innerText = "STOP"; 
+            });
+            document.getElementById('vuL').style.height = '0%';
+            document.getElementById('vuR').style.height = '0%';
         }
     }
 
-    document.getElementById('masterVolume').addEventListener('input', (e) => {
-        if (masterGain && audioCtx) masterGain.gain.setTargetAtTime(e.target.value, audioCtx.currentTime, 0.05);
-    });
-
-    function setupVisualizer() {
+    // ==========================================
+    // 4. VIZUALIZACE A CLOUD LOGIKA
+    // ==========================================
+    function visualize() {
         const canvas = document.getElementById('visualizer');
         const ctx = canvas.getContext('2d');
-        const bufferLength = analyser.frequencyBinCount;
-        const dataArray = new Uint8Array(bufferLength);
+        const bufferLen = analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLen);
+        const timeArray = new Uint8Array(bufferLen);
+
         function draw() {
             if (!audioCtx) return;
             animationId = requestAnimationFrame(draw);
-            analyser.getByteTimeDomainData(dataArray);
+            analyser.getByteFrequencyData(dataArray);
+            analyser.getByteTimeDomainData(timeArray);
+
+            let sum = 0;
+            for(let i=0; i<bufferLen; i++) {
+                const x = (timeArray[i] - 128) / 128.0;
+                sum += x * x;
+            }
+            const rms = Math.sqrt(sum / bufferLen);
+            const vuHeight = Math.min(100, rms * 400);
+            document.getElementById('vuL').style.height = vuHeight + '%';
+            document.getElementById('vuR').style.height = vuHeight + '%';
+
             ctx.fillStyle = '#000';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.lineWidth = 2;
-            ctx.strokeStyle = '#00e5ff';
-            ctx.beginPath();
-            const sliceWidth = canvas.width / bufferLength;
-            let x = 0;
-            for (let i = 0; i < bufferLength; i++) {
-                const v = dataArray[i] / 128.0;
-                const y = v * canvas.height / 2;
-                if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-                x += sliceWidth;
+
+            if (vizMode === 'bar') {
+                const barWidth = (canvas.width / bufferLen) * 2.5;
+                let x = 0;
+                for (let i = 0; i < bufferLen; i++) {
+                    const h = (dataArray[i] / 255) * canvas.height;
+                    const r = h + (25 * (i/bufferLen));
+                    ctx.fillStyle = "rgb(" + r + "," + (250 * (i/bufferLen)) + ",50)";
+                    ctx.fillRect(x, canvas.height - h, barWidth, h);
+                    x += barWidth + 1;
+                }
+            } else {
+                ctx.lineWidth = 2; 
+                ctx.strokeStyle = '#00e5ff'; 
+                ctx.beginPath();
+                const sliceWidth = canvas.width / bufferLen;
+                let x = 0;
+                for (let i = 0; i < bufferLen; i++) {
+                    const v = timeArray[i] / 128.0;
+                    const y = v * canvas.height / 2;
+                    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                    x += sliceWidth;
+                }
+                ctx.lineTo(canvas.width, canvas.height / 2); 
+                ctx.stroke();
             }
-            ctx.lineTo(canvas.width, canvas.height / 2);
-            ctx.stroke();
         }
         draw();
     }
 
-    // --- SAVE / LOAD (Modifikované pro nové API) ---
+    async function cloudLogin() {
+        const input = document.getElementById('passwordInput').value;
+        const err = document.getElementById('login-error');
+        const btn = document.querySelector('#login-overlay button');
+        
+        if (!input) return;
+        err.innerText = "Ověřuji...";
+        if (btn) btn.disabled = true;
+
+        try {
+            const res = await fetch(SHEETS_URL, {
+                method: 'POST', 
+                mode: 'cors', 
+                redirect: 'follow',
+                body: JSON.stringify({ action: "login", password: input }),
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+            });
+            const data = await res.json();
+
+            if (data.status === 'success') {
+                logToConsole("Přihlášení úspěšné", "success");
+                document.body.classList.add('logged-in');
+                sessionStorage.setItem('cloudAuth', 'true');
+                loadFromSheets();
+            } else {
+                err.innerText = data.message || "Nesprávné heslo.";
+                err.style.color = "var(--danger)";
+                if (btn) btn.disabled = false;
+            }
+        } catch (e) {
+            err.innerText = "Chyba komunikace. Zkontrolujte připojení.";
+            if (btn) btn.disabled = false;
+        }
+    }
+
     async function saveToSheets() {
         const code = document.getElementById('editor').value;
-        const name = document.getElementById('fnName').value || "Nepojmenováno";
-        setStatus("Ukládám...");
+        const name = document.getElementById('fnName').value || "Bez názvu";
+        logToConsole("Ukládám do cloudu...", "info");
         try {
-            // Tady používáme action: "save"
-            await fetch(SHEETS_URL, { 
-                method: 'POST', 
-                body: JSON.stringify({ action: "save", name, code }) 
-            });
-            setStatus("Odesláno! (Data uložena)");
-        } catch (e) { setStatus("Chyba spojení."); }
+            await fetch(SHEETS_URL, { method: 'POST', body: JSON.stringify({ action: "save", name, code }) });
+            logToConsole("Uloženo!", "success");
+        } catch(e) { logToConsole("Chyba ukládání", "error"); }
     }
 
     async function loadFromSheets() {
         const lib = document.getElementById('library');
-        lib.innerHTML = '<div style="padding:10px">Načítám...</div>';
+        lib.innerHTML = "Načítám...";
         try {
-            // Tady voláme GET jako dřív
             const res = await fetch(SHEETS_URL);
-            if (!res.ok) throw new Error("Chyba sítě");
             const data = await res.json();
             lib.innerHTML = "";
             data.reverse().forEach(item => {
-                const el = document.createElement('div');
+                const el = document.createElement('div'); 
                 el.className = 'lib-item';
-                el.innerHTML = `<strong>${item.name}</strong><small>${new Date(item.date).toLocaleDateString()}</small>`;
-                el.onclick = () => {
-                    document.getElementById('editor').value = item.code;
-                    document.getElementById('fnName').value = item.name;
+                el.innerHTML = "<strong>" + item.name + "</strong>";
+                el.onclick = () => { 
+                    document.getElementById('editor').value = item.code; 
+                    document.getElementById('fnName').value = item.name; 
                 };
                 lib.appendChild(el);
             });
-        } catch (e) { 
-            console.error(e);
-            lib.innerHTML = '<div style="color:red; padding:10px; font-size:0.8em">Chyba načítání.</div>'; 
-        }
+        } catch(e) { lib.innerHTML = "Chyba načítání"; }
     }
 
-    function setStatus(msg) { document.getElementById('status').innerText = msg; }
+    if (sessionStorage.getItem('cloudAuth') === 'true') document.body.classList.add('logged-in');
 
+    const PRESETS = {
+        macro: "// --- MAKRO TEST ---\\nconst osc = ctx.createOscillator();\\nconst gain = ctx.createGain();\\nosc.type = 'sawtooth';\\nosc.connect(gain); gain.connect(destination);\\nosc.start();\\n\\nsetInterval(() => {\\n  osc.frequency.setTargetAtTime(getA(), ctx.currentTime, 0.05);\\n  gain.gain.setTargetAtTime(getB(), ctx.currentTime, 0.05);\\n}, 50);",
+        fire: "// --- FINAL OHEŇ ---",
+        bell: "// --- FM ZVON ---",
+        zen: "// --- ZEN MISA ---",
+        noise: "// --- SUM ---"
+    };
+
+    function loadPreset() {
+        const val = document.getElementById('presetSelect').value;
+        if (PRESETS[val]) document.getElementById('editor').value = PRESETS[val];
+    }
 </script>
 
 </body>
