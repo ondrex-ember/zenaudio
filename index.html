@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JOUZA AUDIO LAB v5.3</title>
+    <title>JOUZA AUDIO LAB v5.4 (Restored & Ultimate)</title>
 <style>
     :root { 
         --primary: #00e5ff; 
@@ -22,23 +22,15 @@
     
     * { box-sizing: border-box; }
     
-    /* --- SCROLLBAR MAGIC --- */
     ::-webkit-scrollbar { width: 10px; height: 10px; }
     ::-webkit-scrollbar-track { background: var(--scroll-track); }
     ::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: 5px; border: 2px solid var(--scroll-track); }
     ::-webkit-scrollbar-thumb:hover { background: var(--scroll-hover); }
-    * { scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) var(--scroll-track); }
 
     body { 
         font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
-        background-color: var(--bg); 
-        color: var(--text); 
-        margin: 0; 
-        padding: 0; 
-        height: 100vh; 
-        overflow: hidden; 
-        display: flex;
-        flex-direction: column;
+        background-color: var(--bg); color: var(--text); 
+        margin: 0; padding: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column;
     }
 
     /* --- LAYOUT --- */
@@ -46,42 +38,25 @@
         display: grid;
         grid-template-columns: 3fr 1.2fr;
         grid-template-rows: auto 1fr auto; 
-        gap: 15px;
-        padding: 15px;
-        height: 100%;
-        width: 100%;
-        max-width: 100%; /* Plná šířka */
-        margin: 0 auto;
-        opacity: 0; 
-        filter: blur(10px); 
-        transition: opacity 0.5s, filter 0.5s;
+        gap: 15px; padding: 15px; height: 100%; width: 100%;
+        opacity: 0; filter: blur(10px); transition: opacity 0.5s, filter 0.5s;
     }
-    
     body.logged-in #app-content { opacity: 1; filter: none; }
 
-    /* HEADER - ULTRA WIDE UPDATE */
+    /* HEADER - ULTRA WIDE */
     header { grid-column: 1 / -1; display: flex; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 5px; gap: 10px; }
     h1 { margin: 0; font-weight: 200; letter-spacing: 3px; color: var(--primary); text-transform: uppercase; font-size: 1.2rem; width: 200px; flex-shrink: 0; overflow: hidden; white-space: nowrap; }
     h1 span { font-weight: 700; color: #fff; }
 
-    /* BIO MONITOR - FULL STRETCH */
     .bio-monitor { display: flex; align-items: center; gap: 10px; flex-grow: 1; }
     #bp-canvas { flex-grow: 1; height: 35px; border-radius: 4px; background: rgba(0,0,0,0.4); border: 1px solid #222; }
     #status { font-size: 0.8em; color: #666; font-family: monospace; border: 1px solid #333; padding: 2px 8px; border-radius: 4px; flex-shrink: 0; }
 
-    /* MAIN PANEL */
     .main-area { display: flex; flex-direction: column; gap: 10px; height: 100%; overflow: hidden; }
 
-    /* DASHBOARD */
     .dashboard { 
-        display: grid; 
-        grid-template-columns: 1.5fr 1fr; 
-        gap: 10px; 
-        background: var(--panel); 
-        padding: 10px; 
-        border-radius: 6px; 
-        border: 1px solid var(--border);
-        flex-shrink: 0; 
+        display: grid; grid-template-columns: 1.5fr 1fr; gap: 10px; 
+        background: var(--panel); padding: 10px; border-radius: 6px; border: 1px solid var(--border); flex-shrink: 0; 
     }
 
     .viz-wrapper { position: relative; height: 140px; background: #000; border-radius: 4px; border: 1px solid var(--border); overflow: hidden; }
@@ -99,56 +74,18 @@
     .macro-row input { flex-grow: 1; accent-color: var(--primary); cursor: pointer; height: 4px; }
     .macro-val { width: 35px; text-align: right; font-family: monospace; color: #fff; }
 
-    /* EDITOR */
     .editor-container { 
-        flex-grow: 1; 
-        display: flex; 
-        flex-direction: column; 
-        border: 1px solid var(--border); 
-        border-radius: 6px; 
-        background: var(--code-bg); 
-        overflow: hidden; 
-        position: relative;
+        flex-grow: 1; display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: 6px; background: var(--code-bg); overflow: hidden; position: relative;
     }
     .editor-header {
-        background: #1f1f1f;
-        padding: 5px 10px;
-        font-size: 0.75em;
-        color: #666;
-        border-bottom: 1px solid var(--border);
-        display: flex;
-        justify-content: space-between;
+        background: #1f1f1f; padding: 5px 10px; font-size: 0.75em; color: #666; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between;
     }
     textarea#editor { 
-        flex-grow: 1; 
-        width: 100%; 
-        background: transparent; 
-        color: #d4d4d4; 
-        border: none; 
-        padding: 15px; 
-        font-family: 'Fira Code', 'Consolas', monospace; 
-        font-size: 14px; 
-        line-height: 1.5; 
-        resize: none; 
-        outline: none; 
-        white-space: pre;
+        flex-grow: 1; width: 100%; background: transparent; color: #d4d4d4; border: none; padding: 15px; font-family: 'Fira Code', 'Consolas', monospace; font-size: 14px; line-height: 1.5; resize: none; outline: none; white-space: pre;
     }
-    textarea#editor:focus { box-shadow: inset 2px 0 0 var(--primary); }
 
-    /* KONZOLE */
     #consoleOutput { 
-        height: 100px; 
-        background: #080808; 
-        border: 1px solid var(--border); 
-        border-radius: 6px; 
-        padding: 8px; 
-        font-family: 'Consolas', monospace; 
-        font-size: 0.8em; 
-        color: #aaa; 
-        overflow-y: auto; 
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
+        height: 100px; background: #080808; border: 1px solid var(--border); border-radius: 6px; padding: 8px; font-family: 'Consolas', monospace; font-size: 0.8em; color: #aaa; overflow-y: auto; display: flex; flex-direction: column; gap: 2px;
     }
     .log-line { display: flex; gap: 10px; border-bottom: 1px solid #111; padding: 2px 0; }
     .log-time { color: #555; min-width: 60px; }
@@ -158,7 +95,6 @@
     .log-error { color: var(--danger); background: rgba(255, 64, 129, 0.1); }
     .log-line-num { color: var(--warn); font-weight: bold; min-width: 50px; text-align: right; }
 
-    /* OVLÁDÁNÍ */
     .controls { display: flex; gap: 10px; padding: 10px 0; align-items: center; }
     button { padding: 8px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; color: white; background: #333; transition: all 0.2s; font-size: 0.85em; text-transform: uppercase; letter-spacing: 1px; }
     button:hover { filter: brightness(1.2); transform: translateY(-1px); }
@@ -168,7 +104,6 @@
     input[type=range].master-vol { width: 100px; accent-color: #fff; }
     input[type=text] { background: #111; border: 1px solid #444; color: white; padding: 8px; border-radius: 4px; width: 200px; }
 
-    /* SIDEBAR */
     .side-panel { display: flex; flex-direction: column; gap: 15px; height: 100%; overflow: hidden; }
     .panel-box { background: var(--panel); border: 1px solid var(--border); border-radius: 6px; display: flex; flex-direction: column; overflow: hidden; }
     .panel-header { padding: 10px; background: #222; border-bottom: 1px solid var(--border); font-size: 0.8em; font-weight: bold; color: #888; display: flex; justify-content: space-between; align-items: center; }
@@ -177,13 +112,11 @@
     .lib-item { padding: 8px 10px; border-bottom: 1px solid #2a2a2a; cursor: pointer; font-size: 0.85em; transition: 0.2s; border-radius: 4px; margin-bottom: 2px; }
     .lib-item:hover { background: #2a2a2a; color: var(--primary); padding-left: 15px; }
 
-    /* LOGIN */
     #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #050505; z-index: 999; display: flex; justify-content: center; align-items: center; flex-direction: column; transition: opacity 0.5s; }
     body.logged-in #login-overlay { opacity: 0; pointer-events: none; display: none; }
     #login-overlay input { text-align: center; font-size: 1.2rem; letter-spacing: 5px; width: 300px; padding: 15px; margin-bottom: 20px; border: 1px solid #333; background: #111; color: white; }
     #login-overlay button { font-size: 1rem; padding: 10px 40px; background: var(--primary); color: #000; }
 
-    /* FOOTER */
     footer { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 10px; font-size: 0.75em; color: #555; }
     .footer-links a { color: #777; text-decoration: none; margin-right: 15px; transition: color 0.2s; }
     .footer-links a:hover { color: var(--primary); }
@@ -193,7 +126,7 @@
 <body>
 
     <div id="login-overlay">
-        <h2 style="color:var(--primary); font-weight:300; letter-spacing:4px; margin-bottom:30px;">JOUZA AUDIO LAB <span style="font-size:0.5em; opacity:0.5">v5.3</span></h2>
+        <h2 style="color:var(--primary); font-weight:300; letter-spacing:4px; margin-bottom:30px;">JOUZA AUDIO LAB <span style="font-size:0.5em; opacity:0.5">v5.4</span></h2>
         <input type="password" id="passwordInput" placeholder="•••••••">
         <button id="loginBtn" onclick="cloudLogin()">VSTOUPIT</button>
         <p id="login-error" style="color:var(--danger); height:20px; margin-top:15px;"></p>
@@ -202,7 +135,7 @@
     <div id="app-content">
         
         <header>
-            <h1>JOUZA AUDIO LAB</h1>
+            <h1>JOUZA <span>AUDIO LAB</span></h1>
             <div class="bio-monitor">
                 <canvas id="bp-canvas" title="Arteriální tlaková křivka"></canvas>
                 <div id="status">SYSTEM READY</div>
@@ -255,7 +188,7 @@
             </div>
 
             <div id="consoleOutput">
-                <div class="log-line"><span class="log-time">System</span><span class="log-msg log-sys">Jouza Lab v5 ready.</span></div>
+                <div class="log-line"><span class="log-time">System</span><span class="log-msg log-sys">Jouza Lab v5.4 Ultimate Restored.</span></div>
             </div>
 
             <div class="controls">
@@ -275,14 +208,14 @@
 
         <div class="side-panel">
             <div class="panel-box" style="flex-shrink: 0;">
-                <div class="panel-header">PRESETY (Nomad Selection)</div>
+                <div class="panel-header">PRESETY (Full Library)</div>
                 <select id="presetSelect" onchange="loadPreset()" size="8" style="height: 160px;">
                     <option value="macro">🎛️ Test Maker (Osc)</option>
                     <option value="zen">🧘 Zen Mísa (Ambient)</option>
                     <option value="fire">🔥 Class Oheň (Třída)</option>
-                    <option value="acid">🧬 ACID Tekno (303 style)</option>
-                    <option value="nomad">⛺ NOMAD Drone (Space)</option>
-                    <option value="psy">👽 PSY-Squelch (FM)</option>
+                    <option value="acid">🧬 ACID Tekno</option>
+                    <option value="nomad">⛺ NOMAD Drone</option>
+                    <option value="psy">👽 PSY FM Squelch</option>
                     <option value="unstoppable">☠️ UNSTOPPABLE FIRE</option>
                 </select>
             </div>
@@ -310,7 +243,7 @@
 
 <script>
     // ==========================================
-    // 0. DEEP CLEAN & TRACKING
+    // 0. SYSTEM & TRACKING & BIO
     // ==========================================
     const _trackedContexts = [], _trackedTimeouts = [], _trackedIntervals = [];
     let bpData = []; 
@@ -324,10 +257,7 @@
         hijackGain.gain.value = volSlider ? volSlider.value : 0.5;
         hijackGain.connect(ctx.destination);
         ctx._hijackGain = hijackGain;
-        try {
-            Object.defineProperty(ctx, 'destination', { get: function() { return hijackGain; } });
-        } catch(e) {}
-        logToConsole("Detekován uživatelský AudioContext", "sys");
+        try { Object.defineProperty(ctx, 'destination', { get: function() { return hijackGain; } }); } catch(e) {}
         return ctx;
     };
 
@@ -342,7 +272,7 @@
     }
 
     // ==========================================
-    // 1. VARS & CONFIG
+    // 1. CONFIG & GLOBALS
     // ==========================================
     const SHEETS_URL = "https://script.google.com/macros/s/AKfycbwe8O3qqe-C0yLm08EDFZGqHkEIdswZ6DCAuTd4rSMM90P5bp1HZCGw4G9jg7gU0W2I/exec"; 
     let audioCtx, masterGain, analyser, animationId, bpAnimationId;
@@ -359,9 +289,6 @@
         window.MACROS = { A: a, B: b, C: c };
     }
 
-    // ==========================================
-    // 2. LOGGING & UTILS
-    // ==========================================
     function logToConsole(msg, type = 'info', errorObj = null) {
         const con = document.getElementById('consoleOutput');
         if(!con) return;
@@ -370,9 +297,8 @@
         lineDiv.className = 'log-line';
         let lineNum = '';
         if (type === 'error' && errorObj && errorObj.stack) {
-            const stackLines = errorObj.stack.split('\n');
-            const match = stackLines[1]?.match(/:(\d+):\d+/);
-            if (match) { lineNum = `Line ${parseInt(match[1]) - 6}`; }
+            const match = errorObj.stack.split('\n')[1]?.match(/:(\d+):\d+/);
+            if (match) lineNum = `Line ${parseInt(match[1]) - 6}`;
         }
         let css = type === 'sys' ? 'log-sys' : type === 'success' ? 'log-success' : type === 'error' ? 'log-error' : 'log-info';
         lineDiv.innerHTML = `<span class="log-time">${time}</span><span class="log-line-num">${lineNum}</span><span class="log-msg ${css}">${msg}</span>`;
@@ -388,7 +314,7 @@
     }
 
     // ==========================================
-    // 3. AUDIO ENGINE
+    // 2. AUDIO ENGINE
     // ==========================================
     function initAudio() {
         if (!audioCtx || audioCtx.state === 'closed') {
@@ -414,7 +340,7 @@
             const wrapper = `const destination = userOut; const getA = () => window.MACROS.A; const getB = () => window.MACROS.B; const getC = () => window.MACROS.C; ${code}`;
             const run = new Function('ctx', 'userOut', 'window', wrapper);
             run(audioCtx, userOut, window);
-            logToConsole("Audio běží.", "success");
+            logToConsole("Kód běží.", "success");
             document.getElementById('status').innerText = "RUNNING";
             document.getElementById('status').style.color = "var(--success)";
             document.getElementById('status').style.borderColor = "var(--success)";
@@ -437,7 +363,7 @@
     }
 
     // ==========================================
-    // 4. VIZUALIZACE (Pulse & Wide Bio Monitor)
+    // 3. VIZUALIZACE (Lab & Bio Monitor)
     // ==========================================
     function visualize() {
         const canvas = document.getElementById('visualizer');
@@ -445,7 +371,6 @@
         const bufferLen = analyser.frequencyBinCount;
         const dataArray = new Uint8Array(bufferLen);
         const timeArray = new Uint8Array(bufferLen);
-        canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight;
 
         function draw() {
             if (!audioCtx || audioCtx.state === 'closed') return;
@@ -488,52 +413,39 @@
         
         function animate() {
             bpAnimationId = requestAnimationFrame(animate);
-            
-            // Reaguj na změnu velikosti okna
             if(canvas.width !== canvas.clientWidth) {
-                canvas.width = canvas.clientWidth;
-                canvas.height = canvas.clientHeight;
-                bpData = []; // Reset dat při změně velikosti
+                canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight;
+                bpData = [];
             }
-
             if (!audioCtx) { 
                 ctx.clearRect(0,0,canvas.width, canvas.height);
                 ctx.strokeStyle = '#333'; ctx.beginPath(); ctx.moveTo(0,canvas.height/2); ctx.lineTo(canvas.width,canvas.height/2); ctx.stroke();
                 return; 
             }
-
             let rms = parseFloat(document.getElementById('vuL').style.height) || 0;
             let speed = 0.08 + (rms * 0.005);
             let amplitude = 2 + (rms * 0.15);
             let centerY = canvas.height / 2;
             let targetY = centerY - (Math.sin(Date.now() * speed) * amplitude);
-            
-            // Arteriální "zub"
             if(Math.sin(Date.now() * speed) > 0.85) targetY -= 6;
-
             bpData.push(targetY);
             if (bpData.length > canvas.width) bpData.shift(); 
-
             ctx.clearRect(0,0,canvas.width, canvas.height);
             ctx.strokeStyle = '#00e676'; ctx.lineWidth = 1.5; ctx.beginPath();
-            for(let i=0; i<bpData.length; i++) {
-                if(i===0) ctx.moveTo(i, bpData[i]); else ctx.lineTo(i, bpData[i]);
-            }
+            for(let i=0; i<bpData.length; i++) { if(i===0) ctx.moveTo(i, bpData[i]); else ctx.lineTo(i, bpData[i]); }
             ctx.stroke();
         }
         animate();
     }
 
     // ==========================================
-    // 5. CLOUD LOGIN & SAVE
+    // 4. CLOUD INTERACTION
     // ==========================================
     async function cloudLogin() {
         const input = document.getElementById('passwordInput').value;
         const err = document.getElementById('login-error');
         const btn = document.getElementById('loginBtn');
-        if (!input) return;
-        err.innerText = "Ověřuji...";
-        btn.disabled = true;
+        if (!input) return; err.innerText = "Ověřuji..."; btn.disabled = true;
         try {
             const res = await fetch(SHEETS_URL, {
                 method: 'POST', mode: 'cors', redirect: 'follow',
@@ -545,28 +457,23 @@
                 document.body.classList.add('logged-in');
                 sessionStorage.setItem('cloudAuth', 'true');
                 loadFromSheets();
-                logToConsole("Přihlášení úspěšné.", "success");
             } else { err.innerText = "Nesprávné heslo."; btn.disabled = false; }
         } catch (e) { err.innerText = "Chyba komunikace."; btn.disabled = false; }
     }
 
     async function saveToSheets() {
         const code = document.getElementById('editor').value;
-        const name = document.getElementById('fnName').value || "experiment";
-        logToConsole("Ukládám...", "sys");
+        const name = document.getElementById('fnName').value || "exp";
         try {
             await fetch(SHEETS_URL, { method: 'POST', body: JSON.stringify({ action: "save", name, code }) });
-            logToConsole("Uloženo!", "success");
-            loadFromSheets();
+            logToConsole("Uloženo!", "success"); loadFromSheets();
         } catch(e) { logToConsole("Chyba uložení", "error"); }
     }
 
     async function loadFromSheets() {
         try {
-            const res = await fetch(SHEETS_URL); 
-            const data = await res.json();
-            const lib = document.getElementById('library'); 
-            lib.innerHTML = "";
+            const res = await fetch(SHEETS_URL); const data = await res.json();
+            const lib = document.getElementById('library'); lib.innerHTML = "";
             data.reverse().forEach(item => {
                 let el = document.createElement('div'); el.className = 'lib-item';
                 el.innerHTML = `<strong>${item.name}</strong>`;
@@ -579,16 +486,157 @@
     if (sessionStorage.getItem('cloudAuth') === 'true') document.body.classList.add('logged-in');
 
     // ==========================================
-    // 6. PRESETY (Nomad Selection)
+    // 5. PRESETS (The Restored Library)
     // ==========================================
     const PRESETS = {
-        macro: `// --- MAKRO TEST ---\nconst osc = ctx.createOscillator();\nconst gain = ctx.createGain();\nosc.type = 'sawtooth';\nosc.connect(gain); gain.connect(destination);\nosc.start();\n\nsetInterval(() => {\n  osc.frequency.setTargetAtTime(getA(), ctx.currentTime, 0.05);\n  gain.gain.setTargetAtTime(getB(), ctx.currentTime, 0.05);\n}, 50);`,
-        zen: `// --- ZEN MISA ---\nconst freq = 200 + getA(); const t = ctx.currentTime;\nconst addLayer = (f, gv, d) => {\n  const osc = ctx.createOscillator(); const g = ctx.createGain();\n  osc.frequency.value = f; osc.type = 'sine';\n  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(gv, t+0.05); g.gain.exponentialRampToValueAtTime(0.0001, t+d);\n  osc.connect(g); g.connect(destination); osc.start(t); osc.stop(t+d);\n};\naddLayer(freq, 0.2, 5); addLayer(freq*1.501, 0.1, 4);`,
-        fire: `// --- CLASS OHEŇ ---\nclass Fire {\n  constructor() {\n    this.g = ctx.createGain(); this.g.connect(destination);\n    this.loop = setInterval(() => this.snap(), 150);\n  }\n  snap() {\n    const s = ctx.createBufferSource(); const b = ctx.createBuffer(1, 441, 44100);\n    for(let i=0; i<441; i++) b.getChannelData(0)[i] = Math.random()*2-1;\n    const f = ctx.createBiquadFilter(); f.type='bandpass'; f.frequency.value=800+getA();\n    s.buffer = b; s.connect(f); f.connect(this.g); s.start();\n  }\n}\nnew Fire();`,
-        acid: `// --- ACID 303 ---\nconst osc = ctx.createOscillator(); const filter = ctx.createBiquadFilter();\nconst g = ctx.createGain(); osc.type = 'sawtooth';\nfilter.type = 'lowpass'; filter.Q.value = 15 + (getB()*20);\nosc.connect(filter); filter.connect(g); g.connect(destination);\nosc.start();\nsetInterval(() => {\n  osc.frequency.setTargetAtTime(50 + (getA()/4), ctx.currentTime, 0.1);\n  filter.frequency.setTargetAtTime(200 + (getA()*2), ctx.currentTime, 0.1);\n}, 50);`,
+        macro: `// --- MAKRO TEST (Restored) ---
+const osc = ctx.createOscillator();
+const gain = ctx.createGain();
+osc.type = 'sawtooth';
+osc.connect(gain); gain.connect(destination);
+osc.start();
+
+setInterval(() => {
+  // A = Frekvence, B = Hlasitost
+  osc.frequency.setTargetAtTime(getA(), ctx.currentTime, 0.05);
+  gain.gain.setTargetAtTime(getB(), ctx.currentTime, 0.05);
+}, 50);`,
+
+        zen: `// --- ZEN MISA (Restored) ---
+const freq = 200 + getA(); 
+const t = ctx.currentTime;
+
+const addLayer = (f, gain, decay, detune = 0) => {
+    const osc = ctx.createOscillator();
+    const g = ctx.createGain();
+    osc.frequency.value = f + detune;
+    osc.type = 'sine';
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(gain, t + 0.05);
+    g.gain.exponentialRampToValueAtTime(0.00001, t + decay);
+    osc.connect(g);
+    g.connect(destination);
+    osc.start(t);
+    osc.stop(t + decay);
+};
+
+addLayer(freq, 0.2, 5);
+addLayer(freq * 2, 0.1, 4);
+addLayer(freq * 3.01, 0.05, 3);
+addLayer(freq * 4.45, 0.03, 2);
+addLayer(freq * 0.5, 0.15, 6, Math.sin(t)*2);`,
+
+        fire: `// --- TŘÍDA OHEŇ (Restored AudioSystem) ---
+class AudioSystem {
+    constructor() {
+        this.audioContext = ctx; 
+        this.masterGain = this.audioContext.createGain();
+        this.masterGain.connect(destination);
+        this.isPlaying = false;
+        this.rumbleSrc = null;
+        this.updateLoop = null;
+    }
+    start() {
+        if(this.isPlaying) return;
+        this.isPlaying = true;
+        this.startRumble();
+        this.updateLoop = setInterval(() => {
+            const volume = getA() / 1000; 
+            this.masterGain.gain.setTargetAtTime(volume, this.audioContext.currentTime, 0.1);
+        }, 50);
+    }
+    stop() {
+        if (this.updateLoop) clearInterval(this.updateLoop);
+        if (this.rumbleSrc) { this.rumbleSrc.stop(); this.rumbleSrc = null; }
+        this.isPlaying = false;
+    }
+    startRumble() {
+        const buf = this.audioContext.createBuffer(1, 44100, 44100);
+        const data = buf.getChannelData(0);
+        for(let i=0; i<44100; i++) data[i] = Math.random() * 2 - 1;
+        const src = this.audioContext.createBufferSource();
+        src.buffer = buf; src.loop = true;
+        src.connect(this.masterGain); src.start();
+        this.rumbleSrc = src;
+    }
+}
+const fire = new AudioSystem();
+fire.start();`,
+
+        acid: `// --- ACID TEKNO ---\nconst osc = ctx.createOscillator(); const filter = ctx.createBiquadFilter();\nconst g = ctx.createGain(); osc.type = 'sawtooth';\nfilter.type = 'lowpass'; filter.Q.value = 15 + (getB()*20);\nosc.connect(filter); filter.connect(g); g.connect(destination);\nosc.start();\nsetInterval(() => {\n  osc.frequency.setTargetAtTime(50 + (getA()/4), ctx.currentTime, 0.1);\n  filter.frequency.setTargetAtTime(200 + (getA()*2), ctx.currentTime, 0.1);\n}, 50);`,
+
         nomad: `// --- NOMAD DRONE ---\nfor(let i=0; i<6; i++) {\n  const o = ctx.createOscillator(); const g = ctx.createGain();\n  o.type = 'sine'; o.frequency.value = 50 + (i*33.3);\n  g.gain.value = 0.05; o.connect(g); g.connect(destination); o.start();\n  setInterval(() => { o.detune.value = Math.sin(Date.now()*0.001 + i)*getA(); }, 50);\n}`,
-        psy: `// --- FM SQUELCH ---\nconst o = ctx.createOscillator(); const mod = ctx.createOscillator();\nconst mg = ctx.createGain(); mod.frequency.value = 20 + getB()*100;\nmg.gain.value = getA(); mod.connect(mg); mod.connect(o.frequency);\no.connect(destination); o.start(); mod.start();`,
-        unstoppable: `// --- ☠️ UNSTOPPABLE FIRE ---\n(function() {\n  const c = new AudioContext(); const g = c.createGain(); g.connect(c.destination);\n  setInterval(() => {\n    const s = c.createBufferSource(); const b = c.createBuffer(1, 200, 44100);\n    for(let i=0; i<200; i++) b.getChannelData(0)[i] = Math.random()*2-1;\n    s.buffer = b; s.connect(g); s.start();\n  }, 60);\n})();`
+
+        psy: `// --- FM PSY-SQUELCH ---\nconst o = ctx.createOscillator(); const mod = ctx.createOscillator();\nconst mg = ctx.createGain(); mod.frequency.value = 20 + getB()*100;\nmg.gain.value = getA(); mod.connect(mg); mod.connect(o.frequency);\no.connect(destination); o.start(); mod.start();`,
+
+        unstoppable: `// --- ☠️ UNSTOPPABLE FIRE (The Original Full Code) ---
+(function() {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    console.log("Krb se sidechain kompresí připraven. KLIKNI KAMKOLIV PRO SPUŠTĚNÍ.");
+
+    const startFire = () => {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const duration = 60;
+        const now = audioCtx.currentTime;
+
+        const noiseBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 5, audioCtx.sampleRate);
+        const nd = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+
+        function makeDistortionCurve(amount) {
+            const k = amount, n_samples = 44100, curve = new Float32Array(n_samples), deg = Math.PI / 180;
+            for (let i = 0; i < n_samples; ++i) {
+                const x = i * 2 / n_samples - 1;
+                curve[i] = (3 + k) * x * 20 * deg / (Math.PI + k * Math.abs(x));
+            }
+            return curve;
+        }
+
+        const roar = audioCtx.createBufferSource();
+        roar.buffer = noiseBuffer; roar.loop = true;
+        
+        const roarF = audioCtx.createBiquadFilter();
+        roarF.type = 'lowpass'; roarF.frequency.value = 100; roarF.Q.value = 1.5;
+        
+        const distortion = audioCtx.createWaveShaper();
+        distortion.curve = makeDistortionCurve(15);
+        
+        const sidechainGain = audioCtx.createGain();
+        sidechainGain.gain.value = 1.0; 
+
+        const roarG = audioCtx.createGain();
+        roarG.gain.value = 0.15;
+
+        roar.connect(roarF); roarF.connect(distortion); distortion.connect(sidechainGain); sidechainGain.connect(roarG);
+        roarG.connect(audioCtx.destination);
+        roar.start(now);
+
+        function applySidechain(reduction, attack, release) {
+            const t = audioCtx.currentTime;
+            sidechainGain.gain.cancelScheduledValues(t);
+            sidechainGain.gain.setValueAtTime(sidechainGain.gain.value, t);
+            sidechainGain.gain.linearRampToValueAtTime(1.0 - reduction, t + attack);
+            sidechainGain.gain.exponentialRampToValueAtTime(1.0, t + attack + release);
+        }
+
+        function triggerLoudSnap() {
+            if (audioCtx.currentTime > now + duration) return;
+            const t = audioCtx.currentTime;
+            applySidechain(0.5, 0.005, 0.4);
+
+            const s = audioCtx.createBufferSource(); s.buffer = noiseBuffer;
+            const f = audioCtx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 350; f.Q.value = 5;
+            const g = audioCtx.createGain();
+            g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.5, t + 0.002); g.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+            s.connect(f); f.connect(g); g.connect(audioCtx.destination);
+            s.start(t);
+            setTimeout(triggerLoudSnap, 2000 + Math.random() * 2000);
+        }
+        triggerLoudSnap();
+        window.removeEventListener('click', startFire);
+    };
+    window.addEventListener('click', startFire);
+})();`
     };
 
     function loadPreset() {
