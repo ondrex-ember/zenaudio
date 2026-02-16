@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Audio API Lab (Cloud Auth) by Ondrex & some LLMs</title>
+    <title>JOUZA Audio Lab by Ondrex & some LLMs + Woschlej</title>
 <style>
-    :root { --primary: #00e5ff; --bg: #121212; --panel: #1e1e1e; --text: #e0e0e0; --danger: #ff5252; --warn: #ffd740; }
+    :root { --primary: #00e5ff; --bg: #121212; --panel: #1e1e1e; --text: #e0e0e0; --danger: #ff5252; --warn: #ffd740; --success: #69f0ae; }
     body { font-family: 'Segoe UI', Roboto, monospace; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; height: 100vh; box-sizing: border-box; overflow: hidden; }
 
     /* LAYOUT */
@@ -15,7 +15,7 @@
 
     h1 { margin: 0; font-weight: 300; letter-spacing: 2px; color: var(--primary); text-transform: uppercase; font-size: 1.2rem; }
     
-    /* DASHBOARD (Nové) */
+    /* DASHBOARD */
     .dashboard { background: #181818; border: 1px solid #333; border-radius: 6px; padding: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     
     /* VIZUALIZACE */
@@ -38,6 +38,22 @@
     .editor-wrapper { flex-grow: 1; position: relative; border: 1px solid #333; border-radius: 6px; overflow: hidden; }
     textarea { width: 100%; height: 100%; background: #161616; color: #a9dc76; border: none; padding: 15px; font-family: 'Consolas', monospace; font-size: 13px; resize: none; outline: none; }
     
+    /* NOVÁ KONZOLE - CSS */
+    #consoleOutput { 
+        background: #0a0a0a; 
+        border: 1px solid #333; 
+        border-radius: 6px; 
+        padding: 8px; 
+        font-family: 'Consolas', monospace; 
+        font-size: 0.8em; 
+        color: #888; 
+        height: 80px; 
+        overflow-y: auto; 
+        white-space: pre-wrap;
+    }
+    .console-box.error { color: var(--danger); border-left: 3px solid var(--danger); }
+    .console-box.success { color: var(--success); border-left: 3px solid var(--success); }
+
     .library-panel { background: var(--panel); border: 1px solid #333; border-radius: 6px; flex-grow: 1; overflow: hidden; display: flex; flex-direction: column; }
     .lib-list { overflow-y: auto; flex-grow: 1; }
     .lib-item { padding: 8px 12px; border-bottom: 1px solid #2a2a2a; cursor: pointer; font-size: 0.9em; display:flex; justify-content:space-between; }
@@ -52,25 +68,23 @@
     input[type=text] { background: #111; border: 1px solid #444; color: white; padding: 6px; border-radius: 4px; flex-grow: 1; }
     select { background: #222; color: white; border: 1px solid #444; padding: 5px; }
 
-    /* FOOTER & LOGIN (Zachováno) */
+    /* FOOTER & LOGIN */
     #app-footer { position: fixed; bottom: 0; left: 0; width: 100%; height: 60px; background: #000; border-top: 1px solid #222; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; filter: blur(10px); opacity: 0; pointer-events: none; transition: 0.5s; }
     body.logged-in #app-footer { filter: none; opacity: 1; pointer-events: all; }
     .footer-links a { color: #888; text-decoration: none; margin: 0 10px; font-size: 0.9em; }
     .footer-links a:hover { color: var(--primary); }
+    
     #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0a0a0a; z-index: 999; display: flex; justify-content: center; align-items: center; flex-direction: column; }
+    body.logged-in #login-overlay { display: none; }
+
     #app-content { filter: blur(10px); opacity: 0; transition: 0.5s; }
     body.logged-in #app-content { filter: none; opacity: 1; }
-	
-	/* Schová přihlašovací okno po úspěšném přihlášení */
-	body.logged-in #login-overlay { 
-    display: none; 
-}
 </style>
 </head>
 <body>
 
     <div id="login-overlay">
-        <h2 style="color:var(--primary); font-weight:300; letter-spacing:2px;">AUDIO LAB <span style="font-size:0.5em; opacity:0.5">v2.0</span></h2>
+        <h2 style="color:var(--primary); font-weight:300; letter-spacing:2px;">JOUZA AUDIO LAB <span style="font-size:0.5em; opacity:0.5">v2.1</span></h2>
         <input type="password" id="passwordInput" style="padding:10px; background:#222; border:1px solid #444; color:white; text-align:center; margin:15px 0;" placeholder="Přístupový klíč">
         <button onclick="cloudLogin()" style="background:var(--primary); color:black;">VSTOUPIT</button>
         <p id="login-error" style="color:var(--danger); font-size:0.8em; margin-top:10px; height:20px;"></p>
@@ -126,6 +140,8 @@
                 <textarea id="editor" spellcheck="false" placeholder="// Zde pište svůj kód... Použijte pA, pB, pC pro ovládání makry!"></textarea>
             </div>
 
+            <div id="consoleOutput">System Ready. Waiting for input...</div>
+
             <div class="controls">
                 <button class="btn-play" onclick="playAudio()">▶ RUN</button>
                 <button class="btn-stop" onclick="stopAudio()">⏹ STOP</button>
@@ -139,10 +155,9 @@
             <div style="background:#222; padding:10px; border-radius:6px; border:1px solid #333;">
                 <select id="presetSelect" onchange="loadPreset()" style="width:100%;">
                     <option value="" disabled selected>📂 Presety</option>
-                    <option value="fire">🔥 Hluboký Oheň</option>
-                    <option value="macro">🎛️ Test Maker (Novinka)</option>
-                    <option value="bell">🔔 FM Zvon</option>
+                    <option value="macro">🎛️ Test Maker</option>
                     <option value="zen">🧘 Zen Mísa</option>
+                    <option value="fire">🔥 Třída Oheň</option>
                 </select>
             </div>
             
@@ -176,7 +191,6 @@
     let vizMode = 'wave';
     window.MACROS = { A: 50, B: 0.5, C: 0.5 };
 
-    // AKTUALIZACE MAKRO OVLADAČŮ
     function updateMacros() {
         const a = parseFloat(document.getElementById('macA').value);
         const b = parseFloat(document.getElementById('macB').value) / 100;
@@ -194,14 +208,11 @@
     // ==========================================
     function logToConsole(msg, type = 'info') {
         const con = document.getElementById('consoleOutput');
-        if (!con) { 
-            console.log("> " + msg); 
-            return; 
-        }
+        if (!con) { console.log("> " + msg); return; }
         
         const time = new Date().toLocaleTimeString();
         con.innerText = "[" + time + "] " + msg;
-        con.className = 'console-box';
+        con.className = 'console-box'; 
         if (type === 'error') con.classList.add('error');
         if (type === 'success') con.classList.add('success');
     }
@@ -222,7 +233,7 @@
     // 3. AUDIO ENGINE
     // ==========================================
     function initAudio() {
-        if (!audioCtx) {
+        if (!audioCtx || audioCtx.state === 'closed') {
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             masterGain = audioCtx.createGain();
             analyser = audioCtx.createAnalyser();
@@ -231,29 +242,22 @@
             
             masterGain.connect(analyser);
             analyser.connect(audioCtx.destination);
-            masterGain.gain.value = document.getElementById('masterVolume').value;
             visualize();
         }
+        
+        const vol = document.getElementById('masterVolume').value;
+        if(masterGain) masterGain.gain.value = vol;
     }
 
     function playAudio() {
         stopAudio();
         const code = document.getElementById('editor').value;
 
-        // Statická kontrola
         const bracketError = checkBrackets(code);
-        if (bracketError) { 
-            logToConsole("SYNTAX ERROR: " + bracketError, 'error'); 
-            return; 
-        }
+        if (bracketError) { logToConsole("SYNTAX ERROR: " + bracketError, 'error'); return; }
 
-        // Test syntaxe nanečisto
-        try { 
-            new Function('ctx', 'destination', 'window', code); 
-        } catch (e) { 
-            logToConsole("SYNTAX ERROR: " + e.message, 'error'); 
-            return; 
-        }
+        try { new Function('ctx', 'destination', 'window', code); } 
+        catch (e) { logToConsole("SYNTAX ERROR: " + e.message, 'error'); return; }
 
         initAudio();
         if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -262,9 +266,17 @@
         userOut.connect(masterGain);
 
         try {
-            const wrapper = "const audioContext = ctx; const destination = userOut; const getA = () => window.MACROS.A; const getB = () => window.MACROS.B; const getC = () => window.MACROS.C; " + code;
+            const wrapper = `
+                const audioContext = ctx; 
+                const destination = userOut; 
+                const getA = () => window.MACROS.A; 
+                const getB = () => window.MACROS.B; 
+                const getC = () => window.MACROS.C; 
+                ${code}
+            `;
             const run = new Function('ctx', 'userOut', 'window', wrapper);
             run(audioCtx, userOut, window);
+            
             logToConsole("Kompilace úspěšná. Audio běží.", "success");
             document.getElementById('status').innerText = "PLAYING";
         } catch (e) {
@@ -276,29 +288,41 @@
     function stopAudio() {
         activeIntervals.forEach(clearInterval);
         activeIntervals = [];
+
+        if (animationId) cancelAnimationFrame(animationId);
+
         if (audioCtx) {
+            if(masterGain) masterGain.disconnect();
             audioCtx.close().then(() => { 
                 audioCtx = null; 
                 document.getElementById('status').innerText = "STOP"; 
             });
-            document.getElementById('vuL').style.height = '0%';
-            document.getElementById('vuR').style.height = '0%';
         }
+        
+        document.getElementById('vuL').style.height = '0%';
+        document.getElementById('vuR').style.height = '0%';
+        document.getElementById('status').innerText = "STOP"; 
     }
 
     // ==========================================
-    // 4. VIZUALIZACE A CLOUD LOGIKA
+    // 4. VIZUALIZACE A CLOUD
     // ==========================================
     function visualize() {
         const canvas = document.getElementById('visualizer');
+        if(!canvas) return;
+        
+        canvas.width = canvas.clientWidth;
+        canvas.height = canvas.clientHeight;
+
         const ctx = canvas.getContext('2d');
         const bufferLen = analyser.frequencyBinCount;
         const dataArray = new Uint8Array(bufferLen);
         const timeArray = new Uint8Array(bufferLen);
 
         function draw() {
-            if (!audioCtx) return;
+            if (!audioCtx || audioCtx.state === 'closed') return;
             animationId = requestAnimationFrame(draw);
+            
             analyser.getByteFrequencyData(dataArray);
             analyser.getByteTimeDomainData(timeArray);
 
@@ -309,8 +333,11 @@
             }
             const rms = Math.sqrt(sum / bufferLen);
             const vuHeight = Math.min(100, rms * 400);
-            document.getElementById('vuL').style.height = vuHeight + '%';
-            document.getElementById('vuR').style.height = vuHeight + '%';
+            
+            const vuL = document.getElementById('vuL');
+            const vuR = document.getElementById('vuR');
+            if(vuL) vuL.style.height = vuHeight + '%';
+            if(vuR) vuR.style.height = vuHeight + '%';
 
             ctx.fillStyle = '#000';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -374,7 +401,8 @@
                 if (btn) btn.disabled = false;
             }
         } catch (e) {
-            err.innerText = "Chyba komunikace. Zkontrolujte připojení.";
+            console.error(e);
+            err.innerText = "Chyba komunikace. Zkontrolujte log.";
             if (btn) btn.disabled = false;
         }
     }
@@ -411,12 +439,57 @@
 
     if (sessionStorage.getItem('cloudAuth') === 'true') document.body.classList.add('logged-in');
 
+    const originalSetInterval = window.setInterval;
+    window.setInterval = function(func, delay) {
+        const id = originalSetInterval(func, delay);
+        activeIntervals.push(id);
+        return id;
+    };
+
     const PRESETS = {
-        macro: "// --- MAKRO TEST ---\\nconst osc = ctx.createOscillator();\\nconst gain = ctx.createGain();\\nosc.type = 'sawtooth';\\nosc.connect(gain); gain.connect(destination);\\nosc.start();\\n\\nsetInterval(() => {\\n  osc.frequency.setTargetAtTime(getA(), ctx.currentTime, 0.05);\\n  gain.gain.setTargetAtTime(getB(), ctx.currentTime, 0.05);\\n}, 50);",
-        fire: "// --- FINAL OHEŇ ---",
-        bell: "// --- FM ZVON ---",
-        zen: "// --- ZEN MISA ---",
-        noise: "// --- SUM ---"
+        macro: `// --- MAKRO TEST ---
+const osc = ctx.createOscillator();
+const gain = ctx.createGain();
+osc.type = 'sawtooth';
+osc.connect(gain); gain.connect(destination);
+osc.start();
+
+setInterval(() => {
+  osc.frequency.setTargetAtTime(getA(), ctx.currentTime, 0.05);
+  gain.gain.setTargetAtTime(getB(), ctx.currentTime, 0.05);
+}, 50);`,
+
+        zen: `// --- ZEN MISA ---
+const freq = 200 + getA(); 
+const t = ctx.currentTime;
+
+const addLayer = (f, gain, decay, detune = 0) => {
+    const osc = ctx.createOscillator();
+    const g = ctx.createGain();
+    
+    osc.frequency.value = f + detune;
+    osc.type = 'sine';
+
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(gain, t + 0.05);
+    g.gain.exponentialRampToValueAtTime(0.00001, t + decay);
+
+    osc.connect(g);
+    g.connect(destination);
+    
+    osc.start(t);
+    osc.stop(t + decay);
+};
+
+addLayer(freq, 0.2, 5);
+addLayer(freq * 2, 0.1, 4);
+addLayer(freq * 3.01, 0.05, 3);
+addLayer(freq * 4.45, 0.03, 2);
+addLayer(freq * 0.5, 0.15, 6, Math.sin(t)*2);
+addLayer(freq * 0.502, 0.15, 6);`,
+
+        fire: `// --- TŘÍDA OHEŇ ---
+// (Pro vložení kódu použijte třídu z minulé konverzace)`
     };
 
     function loadPreset() {
