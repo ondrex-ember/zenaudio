@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JOUZA AUDIO LAB v3.2 (by Ondrex & LLMs)</title>
+    <title>JOUZA AUDIO LAB v3.3 (by Ondrex & LLMs)</title>
 <style>
     :root { 
         --primary: #00e5ff; 
@@ -204,7 +204,7 @@
 <body>
 
     <div id="login-overlay">
-        <h2 style="color:var(--primary); font-weight:300; letter-spacing:4px; margin-bottom:30px;">JOUZA AUDIO LAB <span style="font-size:0.5em; opacity:0.5">v3.2</span></h2>
+        <h2 style="color:var(--primary); font-weight:300; letter-spacing:4px; margin-bottom:30px;">JOUZA AUDIO LAB <span style="font-size:0.5em; opacity:0.5">v3.3</span></h2>
         <input type="password" id="passwordInput" placeholder="•••••••">
         <button onclick="cloudLogin()">VSTOUPIT</button>
         <p id="login-error" style="color:var(--danger); height:20px; margin-top:15px;"></p>
@@ -259,11 +259,11 @@
                     <span>JAVASCRIPT EDITOR</span>
                     <span>Use: ctx, destination, pA, pB, pC</span>
                 </div>
-                <textarea id="editor" spellcheck="false" placeholder="// Vítej v JOUZA AUDIO LAB v3.2&#10;// Napiš kód a stiskni RUN..."></textarea>
+                <textarea id="editor" spellcheck="false" placeholder="// Vítej v JOUZA AUDIO LAB v3.3&#10;// Napiš kód a stiskni RUN..."></textarea>
             </div>
 
             <div id="consoleOutput">
-                <div class="log-line"><span class="log-time">System</span><span class="log-msg log-sys">Jouza Audio Lab v3.2 initialized. Waiting for input...</span></div>
+                <div class="log-line"><span class="log-time">System</span><span class="log-msg log-sys">Jouza Audio Lab v3.3 initialized. Waiting for input...</span></div>
             </div>
 
             <div class="controls">
@@ -273,7 +273,7 @@
                 <div style="width: 1px; height: 30px; background: #333; margin: 0 10px;"></div>
                 
                 <span style="font-size:0.8em; color:#666;">MASTER:</span>
-                <input type="range" id="masterVolume" class="master-vol" min="0" max="1" step="0.01" value="0.5">
+                <input type="range" id="masterVolume" class="master-vol" min="0" max="1" step="0.01" value="0.5" oninput="if(masterGain) masterGain.gain.value = this.value">
                 
                 <input type="text" id="fnName" placeholder="Název experimentu...">
                 <button class="btn-save" onclick="saveToSheets()">💾 ULOŽIT</button>
@@ -307,7 +307,7 @@
                 <a href="#" target="_blank">🎵 Spotify</a>
                 <a href="#" target="_blank">👾 Doupě 2</a>
             </div>
-            <div>Vyvíjeno s <span style="color:#e91e63">❤️</span> v Novém Boru by <strong>Ondrex</strong> & <span style="opacity:0.6; font-style:italic;">LLMs</span></div>
+            <div>Vyvíjeno s <span style="color:#e91e63">❤️</span> v Novém Boru. <strong>Ondrex</strong> & <strong>Claude</strong> (feat. <strong>Woschlina</strong>)</div>
         </footer>
 
     </div>
