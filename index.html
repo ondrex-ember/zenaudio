@@ -5,101 +5,212 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JOUZA Audio Lab by Ondrex & some LLMs + Woschlej</title>
 <style>
-    :root { --primary: #00e5ff; --bg: #121212; --panel: #1e1e1e; --text: #e0e0e0; --danger: #ff5252; --warn: #ffd740; --success: #69f0ae; }
-    body { font-family: 'Segoe UI', Roboto, monospace; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; height: 100vh; box-sizing: border-box; overflow: hidden; }
-
-    /* LAYOUT */
-    .container { display: grid; grid-template-columns: 3fr 1.2fr; gap: 20px; height: calc(100vh - 90px); }
-    .main-panel { display: flex; flex-direction: column; gap: 15px; height: 100%; }
-    .side-panel { display: flex; flex-direction: column; gap: 15px; height: 100%; }
-
-    h1 { margin: 0; font-weight: 300; letter-spacing: 2px; color: var(--primary); text-transform: uppercase; font-size: 1.2rem; }
+    :root { 
+        --primary: #00e5ff; 
+        --bg: #0f0f0f; 
+        --panel: #1a1a1a; 
+        --text: #e0e0e0; 
+        --danger: #ff4081; 
+        --warn: #ffd740; 
+        --success: #00e676; 
+        --code-bg: #141414;
+        --border: #333;
+    }
     
-    /* DASHBOARD */
-    .dashboard { background: #181818; border: 1px solid #333; border-radius: 6px; padding: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    * { box-sizing: border-box; }
     
-    /* VIZUALIZACE */
-    .viz-container { position: relative; flex-grow: 0; height: 160px; background: #000; border: 1px solid #333; border-radius: 6px; overflow: hidden; }
+    body { 
+        font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+        background-color: var(--bg); 
+        color: var(--text); 
+        margin: 0; 
+        padding: 0; 
+        height: 100vh; 
+        overflow: hidden; 
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* --- LAYOUT --- */
+    #app-content {
+        display: grid;
+        grid-template-columns: 3fr 1.2fr;
+        grid-template-rows: auto 1fr auto; /* Header, Main, Footer */
+        gap: 15px;
+        padding: 15px;
+        height: 100%;
+        width: 100%;
+        max-width: 1600px;
+        margin: 0 auto;
+        opacity: 0; 
+        filter: blur(10px); 
+        transition: opacity 0.5s, filter 0.5s;
+    }
+    
+    body.logged-in #app-content { opacity: 1; filter: none; }
+
+    /* HEADER */
+    header { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 5px; }
+    h1 { margin: 0; font-weight: 200; letter-spacing: 3px; color: var(--primary); text-transform: uppercase; font-size: 1.4rem; }
+    h1 span { font-weight: 700; color: #fff; }
+
+    /* MAIN PANEL */
+    .main-area { display: flex; flex-direction: column; gap: 10px; height: 100%; overflow: hidden; }
+
+    /* DASHBOARD (Vizualizace + Makra) */
+    .dashboard { 
+        display: grid; 
+        grid-template-columns: 1.5fr 1fr; 
+        gap: 10px; 
+        background: var(--panel); 
+        padding: 10px; 
+        border-radius: 6px; 
+        border: 1px solid var(--border);
+        flex-shrink: 0; /* Dashboard se nezmenšuje */
+    }
+
+    /* VIZUALIZER */
+    .viz-wrapper { position: relative; height: 140px; background: #000; border-radius: 4px; border: 1px solid var(--border); overflow: hidden; }
     canvas { width: 100%; height: 100%; display: block; }
-    .viz-select { position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.7); color: var(--primary); border: 1px solid #444; font-size: 0.7em; cursor: pointer; }
+    .viz-select { position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.8); color: var(--primary); border: 1px solid #444; font-size: 0.7em; cursor: pointer; padding: 2px; }
 
-    /* VU METERS */
-    .vu-meter { display: flex; gap: 4px; height: 100%; align-items: flex-end; padding: 5px; background: #111; border-radius: 4px; border: 1px solid #333; }
-    .vu-bar { width: 15px; background: #222; height: 100%; position: relative; border-radius: 2px; overflow: hidden; }
-    .vu-level { position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(to top, #00e5ff 60%, #ffd740 80%, #ff5252 100%); transition: height 0.05s; }
+    /* MAKRA & VU */
+    .controls-grid { display: flex; gap: 10px; }
     
-    /* MAKRO OVLADAČE */
-    .macro-box { display: flex; flex-direction: column; gap: 5px; }
-    .macro-row { display: flex; align-items: center; gap: 10px; font-size: 0.8em; color: #888; }
-    .macro-row input { flex-grow: 1; accent-color: var(--primary); }
-    .macro-val { width: 30px; text-align: right; color: var(--primary); font-family: monospace; }
+    .vu-section { display: flex; gap: 3px; height: 100%; padding: 5px; background: #0a0a0a; border: 1px solid var(--border); border-radius: 4px; }
+    .vu-bar { width: 12px; background: #222; height: 100%; position: relative; border-radius: 2px; overflow: hidden; }
+    .vu-level { position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(to top, var(--primary) 60%, var(--warn) 80%, var(--danger) 100%); transition: height 0.08s ease-out; }
 
-    /* EDITOR & KNIHOVNA */
-    .editor-wrapper { flex-grow: 1; position: relative; border: 1px solid #333; border-radius: 6px; overflow: hidden; }
-    textarea { width: 100%; height: 100%; background: #161616; color: #a9dc76; border: none; padding: 15px; font-family: 'Consolas', monospace; font-size: 13px; resize: none; outline: none; }
+    .macro-section { flex-grow: 1; display: flex; flex-direction: column; justify-content: space-around; padding: 0 5px; }
+    .macro-row { display: flex; align-items: center; gap: 10px; font-size: 0.75em; color: #888; }
+    .macro-row label { width: 10px; font-weight: bold; color: var(--primary); }
+    .macro-row input { flex-grow: 1; accent-color: var(--primary); cursor: pointer; height: 4px; }
+    .macro-val { width: 35px; text-align: right; font-family: monospace; color: #fff; }
+
+    /* EDITOR (Vylepšený) */
+    .editor-container { 
+        flex-grow: 1; 
+        display: flex; 
+        flex-direction: column; 
+        border: 1px solid var(--border); 
+        border-radius: 6px; 
+        background: var(--code-bg); 
+        overflow: hidden; 
+        position: relative;
+    }
     
-    /* NOVÁ KONZOLE - CSS */
+    .editor-header {
+        background: #1f1f1f;
+        padding: 5px 10px;
+        font-size: 0.75em;
+        color: #666;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+    }
+
+    textarea#editor { 
+        flex-grow: 1; 
+        width: 100%; 
+        background: transparent; 
+        color: #d4d4d4; 
+        border: none; 
+        padding: 15px; 
+        font-family: 'Fira Code', 'Consolas', monospace; 
+        font-size: 14px; 
+        line-height: 1.5; 
+        resize: none; 
+        outline: none; 
+        white-space: pre;
+    }
+    
+    /* Zvýraznění aktivního řádku (simulace) - volitelné vylepšení */
+    textarea#editor:focus { box-shadow: inset 2px 0 0 var(--primary); }
+
+    /* KONZOLE (Vylepšená) */
     #consoleOutput { 
-        background: #0a0a0a; 
-        border: 1px solid #333; 
+        height: 120px; 
+        background: #080808; 
+        border: 1px solid var(--border); 
         border-radius: 6px; 
         padding: 8px; 
         font-family: 'Consolas', monospace; 
         font-size: 0.8em; 
-        color: #888; 
-        height: 80px; 
+        color: #aaa; 
         overflow-y: auto; 
-        white-space: pre-wrap;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
     }
-    .console-box.error { color: var(--danger); border-left: 3px solid var(--danger); }
-    .console-box.success { color: var(--success); border-left: 3px solid var(--success); }
-
-    .library-panel { background: var(--panel); border: 1px solid #333; border-radius: 6px; flex-grow: 1; overflow: hidden; display: flex; flex-direction: column; }
-    .lib-list { overflow-y: auto; flex-grow: 1; }
-    .lib-item { padding: 8px 12px; border-bottom: 1px solid #2a2a2a; cursor: pointer; font-size: 0.9em; display:flex; justify-content:space-between; }
-    .lib-item:hover { background: #2a2a2a; border-left: 2px solid var(--primary); }
-    .lib-item small { color: #666; }
-
-    /* OSTATNÍ */
-    .controls { background: var(--panel); padding: 10px; border-radius: 6px; display: flex; gap: 10px; align-items: center; border: 1px solid #333; }
-    button { padding: 6px 14px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; color: white; background: #333; transition: 0.2s; font-size: 0.85em; }
-    button:hover { background: #555; }
-    .btn-play { background: #2e7d32; } .btn-stop { background: #c62828; } .btn-save { background: #1565c0; }
-    input[type=text] { background: #111; border: 1px solid #444; color: white; padding: 6px; border-radius: 4px; flex-grow: 1; }
-    select { background: #222; color: white; border: 1px solid #444; padding: 5px; }
-
-    /* FOOTER & LOGIN */
-    #app-footer { position: fixed; bottom: 0; left: 0; width: 100%; height: 60px; background: #000; border-top: 1px solid #222; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; filter: blur(10px); opacity: 0; pointer-events: none; transition: 0.5s; }
-    body.logged-in #app-footer { filter: none; opacity: 1; pointer-events: all; }
-    .footer-links a { color: #888; text-decoration: none; margin: 0 10px; font-size: 0.9em; }
-    .footer-links a:hover { color: var(--primary); }
+    .log-line { display: flex; gap: 10px; border-bottom: 1px solid #111; padding: 2px 0; }
+    .log-time { color: #555; min-width: 60px; }
+    .log-msg { white-space: pre-wrap; word-break: break-all; }
     
-    #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0a0a0a; z-index: 999; display: flex; justify-content: center; align-items: center; flex-direction: column; }
-    body.logged-in #login-overlay { display: none; }
+    .log-info { color: #aaa; }
+    .log-sys { color: var(--primary); font-style: italic; }
+    .log-success { color: var(--success); }
+    .log-error { color: var(--danger); background: rgba(255, 64, 129, 0.1); }
+    .log-line-num { color: var(--warn); font-weight: bold; min-width: 50px; text-align: right; }
 
-    #app-content { filter: blur(10px); opacity: 0; transition: 0.5s; }
-    body.logged-in #app-content { filter: none; opacity: 1; }
+    /* OVLÁDÁNÍ */
+    .controls { display: flex; gap: 10px; padding: 10px 0; align-items: center; }
+    button { padding: 8px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; color: white; background: #333; transition: all 0.2s; font-size: 0.85em; text-transform: uppercase; letter-spacing: 1px; }
+    button:hover { filter: brightness(1.2); transform: translateY(-1px); }
+    button:active { transform: translateY(0); }
+    
+    .btn-play { background: #2e7d32; } 
+    .btn-stop { background: #c62828; } 
+    .btn-save { background: #1565c0; margin-left: auto; }
+    
+    input[type=range].master-vol { width: 100px; accent-color: #fff; }
+    input[type=text] { background: #111; border: 1px solid #444; color: white; padding: 8px; border-radius: 4px; width: 200px; }
+
+    /* SIDEBAR */
+    .side-panel { display: flex; flex-direction: column; gap: 15px; height: 100%; overflow: hidden; }
+    .panel-box { background: var(--panel); border: 1px solid var(--border); border-radius: 6px; display: flex; flex-direction: column; overflow: hidden; }
+    .panel-header { padding: 10px; background: #222; border-bottom: 1px solid var(--border); font-size: 0.8em; font-weight: bold; color: #888; display: flex; justify-content: space-between; align-items: center; }
+    
+    select { width: 100%; padding: 10px; background: #111; color: #fff; border: none; outline: none; cursor: pointer; }
+    select:hover { background: #1a1a1a; }
+
+    .lib-list { overflow-y: auto; flex-grow: 1; padding: 5px; }
+    .lib-item { padding: 8px 10px; border-bottom: 1px solid #2a2a2a; cursor: pointer; font-size: 0.85em; transition: 0.2s; border-radius: 4px; margin-bottom: 2px; }
+    .lib-item:hover { background: #2a2a2a; color: var(--primary); padding-left: 15px; }
+
+    /* LOGIN OVERLAY */
+    #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #050505; z-index: 999; display: flex; justify-content: center; align-items: center; flex-direction: column; transition: opacity 0.5s; }
+    body.logged-in #login-overlay { opacity: 0; pointer-events: none; }
+    
+    #login-overlay input { text-align: center; font-size: 1.2rem; letter-spacing: 5px; width: 300px; padding: 15px; margin-bottom: 20px; border: 1px solid #333; }
+    #login-overlay button { font-size: 1rem; padding: 10px 40px; background: var(--primary); color: #000; }
+
+    /* FOOTER */
+    footer { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 10px; font-size: 0.75em; color: #555; }
+    .footer-links a { color: #777; text-decoration: none; margin-right: 15px; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--primary); }
+
 </style>
 </head>
 <body>
 
     <div id="login-overlay">
-        <h2 style="color:var(--primary); font-weight:300; letter-spacing:2px;">JOUZA AUDIO LAB <span style="font-size:0.5em; opacity:0.5">v2.1</span></h2>
-        <input type="password" id="passwordInput" style="padding:10px; background:#222; border:1px solid #444; color:white; text-align:center; margin:15px 0;" placeholder="Přístupový klíč">
-        <button onclick="cloudLogin()" style="background:var(--primary); color:black;">VSTOUPIT</button>
-        <p id="login-error" style="color:var(--danger); font-size:0.8em; margin-top:10px; height:20px;"></p>
+        <h2 style="color:var(--primary); font-weight:300; letter-spacing:4px; margin-bottom:30px;">JOUZA AUDIO LAB <span style="font-size:0.5em; opacity:0.5">v3.0</span></h2>
+        <input type="password" id="passwordInput" placeholder="•••••••">
+        <button onclick="cloudLogin()">VSTOUPIT</button>
+        <p id="login-error" style="color:var(--danger); height:20px; margin-top:15px;"></p>
     </div>
 
-    <div id="app-content" class="container">
+    <div id="app-content">
         
-        <div class="main-panel">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <h1>Web Audio API Lab</h1>
-                <div id="status" style="font-size:0.8em; color:#666; font-family:monospace;">READY</div>
-            </div>
+        <header>
+            <h1>JOUZA <span>AUDIO LAB</span></h1>
+            <div id="status" style="font-size:0.8em; color:#666; font-family:monospace; border: 1px solid #333; padding: 2px 8px; border-radius: 4px;">SYSTEM READY</div>
+        </header>
 
+        <div class="main-area">
+            
             <div class="dashboard">
-                <div class="viz-container">
+                <div class="viz-wrapper">
                     <select class="viz-select" id="vizType" onchange="vizMode=this.value">
                         <option value="wave">⚡ Osciloskop</option>
                         <option value="bar">📊 Spektrum</option>
@@ -107,28 +218,25 @@
                     <canvas id="visualizer"></canvas>
                 </div>
 
-                <div style="display:flex; gap:10px;">
-                    <div class="vu-meter">
+                <div class="controls-grid">
+                    <div class="vu-section">
                         <div class="vu-bar"><div id="vuL" class="vu-level" style="height:0%"></div></div>
                         <div class="vu-bar"><div id="vuR" class="vu-level" style="height:0%"></div></div>
-                        <div style="writing-mode: vertical-rl; font-size: 0.7em; color:#555; text-align:center;">MASTER</div>
                     </div>
-
-                    <div class="macro-box" style="flex-grow:1;">
-                        <div style="font-size:0.7em; color:var(--primary); margin-bottom:5px;">🎛️ MAKRO PARAMETRY (Live)</div>
-                        
+                    
+                    <div class="macro-section">
                         <div class="macro-row">
-                            <span>A</span>
+                            <label>A</label>
                             <input type="range" id="macA" min="0" max="1000" value="50" oninput="updateMacros()">
                             <span id="valA" class="macro-val">50</span>
                         </div>
                         <div class="macro-row">
-                            <span>B</span>
+                            <label>B</label>
                             <input type="range" id="macB" min="0" max="100" value="50" oninput="updateMacros()">
                             <span id="valB" class="macro-val">0.5</span>
                         </div>
                         <div class="macro-row">
-                            <span>C</span>
+                            <label>C</label>
                             <input type="range" id="macC" min="0" max="1" step="0.01" value="0.5" oninput="updateMacros()">
                             <span id="valC" class="macro-val">0.5</span>
                         </div>
@@ -136,41 +244,54 @@
                 </div>
             </div>
 
-            <div class="editor-wrapper">
-                <textarea id="editor" spellcheck="false" placeholder="// Zde pište svůj kód... Použijte pA, pB, pC pro ovládání makry!"></textarea>
+            <div class="editor-container">
+                <div class="editor-header">
+                    <span>JAVASCRIPT EDITOR</span>
+                    <span>Use: ctx, destination, pA, pB, pC</span>
+                </div>
+                <textarea id="editor" spellcheck="false" placeholder="// Vítej v JOUZA AUDIO LAB v3.0&#10;// Napiš kód a stiskni RUN..."></textarea>
             </div>
 
-            <div id="consoleOutput">System Ready. Waiting for input...</div>
+            <div id="consoleOutput">
+                <div class="log-line"><span class="log-time">System</span><span class="log-msg log-sys">Jouza Audio Lab v3.0 initialized. Waiting for input...</span></div>
+            </div>
 
             <div class="controls">
-                <button class="btn-play" onclick="playAudio()">▶ RUN</button>
-                <button class="btn-stop" onclick="stopAudio()">⏹ STOP</button>
-                <input type="range" id="masterVolume" min="0" max="1" step="0.01" value="0.5" style="width:100px;">
+                <button class="btn-play" onclick="playAudio()">▶ RUN CODE</button>
+                <button class="btn-stop" onclick="stopAudio()">⏹ KILL ALL</button>
+                
+                <div style="width: 1px; height: 30px; background: #333; margin: 0 10px;"></div>
+                
+                <span style="font-size:0.8em; color:#666;">MASTER:</span>
+                <input type="range" id="masterVolume" class="master-vol" min="0" max="1" step="0.01" value="0.5">
+                
                 <input type="text" id="fnName" placeholder="Název experimentu...">
                 <button class="btn-save" onclick="saveToSheets()">💾 ULOŽIT</button>
             </div>
+
         </div>
 
         <div class="side-panel">
-            <div style="background:#222; padding:10px; border-radius:6px; border:1px solid #333;">
-                <select id="presetSelect" onchange="loadPreset()" style="width:100%;">
-                    <option value="" disabled selected>📂 Presety</option>
-                    <option value="macro">🎛️ Test Maker</option>
-                    <option value="zen">🧘 Zen Mísa</option>
-                    <option value="fire">🔥 Třída Oheň</option>
+            <div class="panel-box" style="flex-shrink: 0;">
+                <div class="panel-header">PRESETY</div>
+                <select id="presetSelect" onchange="loadPreset()" size="5" style="height: 120px;">
+                    <option value="macro">🎛️ Test Maker (Osc)</option>
+                    <option value="zen">🧘 Zen Mísa (Ambient)</option>
+                    <option value="fire">🔥 Class Oheň (Třída)</option>
+                    <option value="unstoppable">☠️ UNSTOPPABLE FIRE</option>
                 </select>
             </div>
             
-            <div class="library-panel">
-                <div style="padding:10px; border-bottom:1px solid #333; font-size:0.8em; color:#888;">
+            <div class="panel-box" style="flex-grow: 1;">
+                <div class="panel-header">
                     CLOUD KNIHOVNA
-                    <button onclick="loadFromSheets()" style="float:right; padding:2px 8px; font-size:0.9em;">↻</button>
+                    <span onclick="loadFromSheets()" style="cursor:pointer; color:var(--primary)">↻</span>
                 </div>
                 <div id="library" class="lib-list"></div>
             </div>
         </div>
-    </div>
 
+        <footer>
     <footer id="app-footer">
         <div class="footer-links">
             <a href="https://www.ember-pa.cz/" target="_blank">🔥 Ember PA</a> | 
@@ -180,15 +301,60 @@
         </div>
         <div style="color:#666; font-size:0.75em;">Vyvíjeno s <span style="color:#e91e63">❤️</span> v Novém Boru by <strong>Ondrex</strong></div>
     </footer>
+            <div>Vyvíjeno s <span style="color:#e91e63">❤️</span> v Novém Boru by <strong>Ondrex</strong></div>
+        </footer>
+
+    </div>
 
 <script>
+    // ==========================================
+    // 0. DEEP CLEAN & TRACKING SYSTEM (Špionáž)
+    // ==========================================
+    // Tímto obelstíme kód, který se snaží vytvořit vlastní kontexty a intervaly
+    
+    const _trackedContexts = [];
+    const _trackedTimeouts = [];
+    const _trackedIntervals = [];
+    const _trackedListeners = [];
+
+    // 1. Špion pro AudioContext
+    const OriginalAudioContext = window.AudioContext || window.webkitAudioContext;
+    window.AudioContext = window.webkitAudioContext = function(...args) {
+        const ctx = new OriginalAudioContext(...args);
+        _trackedContexts.push(ctx);
+        logToConsole("Detekován nový AudioContext (uživatelský)", "sys");
+        return ctx;
+    };
+
+    // 2. Špion pro setTimeout
+    const originalSetTimeout = window.setTimeout;
+    window.setTimeout = function(fn, delay) {
+        const id = originalSetTimeout(fn, delay);
+        _trackedTimeouts.push(id);
+        return id;
+    };
+
+    // 3. Špion pro setInterval
+    const originalSetInterval = window.setInterval;
+    window.setInterval = function(fn, delay) {
+        const id = originalSetInterval(fn, delay);
+        _trackedIntervals.push(id);
+        return id;
+    };
+
+    // 4. Špion pro EventListenery (aby šlo zrušit 'click' a další)
+    const originalAddEventListener = window.addEventListener;
+    window.addEventListener = function(type, listener, options) {
+        _trackedListeners.push({ type, listener, options });
+        return originalAddEventListener.call(window, type, listener, options);
+    };
+
     // ==========================================
     // 1. KONFIGURACE A PROMĚNNÉ
     // ==========================================
     const SHEETS_URL = "https://script.google.com/macros/s/AKfycbwe8O3qqe-C0yLm08EDFZGqHkEIdswZ6DCAuTd4rSMM90P5bp1HZCGw4G9jg7gU0W2I/exec"; 
     
     let audioCtx, masterGain, analyser, animationId;
-    let activeIntervals = [];
     let vizMode = 'wave';
     window.MACROS = { A: 50, B: 0.5, C: 0.5 };
 
@@ -205,28 +371,49 @@
     }
 
     // ==========================================
-    // 2. KONZOLE A DIAGNOSTIKA
+    // 2. SMART KONZOLE S ŘÁDKOVÁNÍM
     // ==========================================
-    function logToConsole(msg, type = 'info') {
+    function logToConsole(msg, type = 'info', errorObj = null) {
         const con = document.getElementById('consoleOutput');
-        if (!con) { console.log("> " + msg); return; }
-        
         const time = new Date().toLocaleTimeString();
-        con.innerText = "[" + time + "] " + msg;
-        con.className = 'console-box'; 
-        if (type === 'error') con.classList.add('error');
-        if (type === 'success') con.classList.add('success');
+        
+        const lineDiv = document.createElement('div');
+        lineDiv.className = 'log-line';
+        
+        let lineNum = '';
+        
+        // Pokus o extrakci řádku z chyby
+        if (type === 'error' && errorObj && errorObj.stack) {
+            // Stack trace vypadá např: "TypeError: ... at eval (eval at playAudio ...), <anonymous>:6:15"
+            // Uživatelův kód je posunutý o wrapper (cca 5 řádků)
+            const stackLines = errorObj.stack.split('\n');
+            const match = stackLines[1]?.match(/:(\d+):\d+/); // Najdi číslo řádku
+            if (match) {
+                // Odečteme hlavičku wrapperu, abychom dostali řádek v editoru
+                const realLine = parseInt(match[1]) - 6; 
+                if (realLine > 0) lineNum = `Line ${realLine}`;
+            }
+        }
+
+        let cssClass = 'log-info';
+        if (type === 'sys') cssClass = 'log-sys';
+        if (type === 'success') cssClass = 'log-success';
+        if (type === 'error') cssClass = 'log-error';
+
+        lineDiv.innerHTML = `
+            <span class="log-time">${time}</span>
+            <span class="log-line-num">${lineNum}</span>
+            <span class="log-msg ${cssClass}">${msg}</span>
+        `;
+        
+        con.appendChild(lineDiv);
+        con.scrollTop = con.scrollHeight; // Auto-scroll
     }
 
     function checkBrackets(code) {
         const openCb = (code.match(/{/g) || []).length;
         const closeCb = (code.match(/}/g) || []).length;
-        if (openCb !== closeCb) return "Nesedí složené závorky { }. Otevřeno: " + openCb + ", Zavřeno: " + closeCb;
-        
-        const openRb = (code.match(/\(/g) || []).length;
-        const closeRb = (code.match(/\)/g) || []).length;
-        if (openRb !== closeRb) return "Nesedí kulaté závorky ( ). Otevřeno: " + openRb + ", Zavřeno: " + closeRb;
-        
+        if (openCb !== closeCb) return `Nesedí složené závorky { }. Otevřeno: ${openCb}, Zavřeno: ${closeCb}`;
         return null;
     }
 
@@ -235,7 +422,8 @@
     // ==========================================
     function initAudio() {
         if (!audioCtx || audioCtx.state === 'closed') {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            // Tady použijeme originální konstruktor, abychom si nezaplevelili trackedContexts
+            audioCtx = new OriginalAudioContext();
             masterGain = audioCtx.createGain();
             analyser = audioCtx.createAnalyser();
             analyser.fftSize = 2048;
@@ -245,20 +433,17 @@
             analyser.connect(audioCtx.destination);
             visualize();
         }
-        
         const vol = document.getElementById('masterVolume').value;
         if(masterGain) masterGain.gain.value = vol;
     }
 
     function playAudio() {
+        // Nejprve vše zabít
         stopAudio();
+
         const code = document.getElementById('editor').value;
-
         const bracketError = checkBrackets(code);
-        if (bracketError) { logToConsole("SYNTAX ERROR: " + bracketError, 'error'); return; }
-
-        try { new Function('ctx', 'destination', 'window', code); } 
-        catch (e) { logToConsole("SYNTAX ERROR: " + e.message, 'error'); return; }
+        if (bracketError) { logToConsole(bracketError, 'error'); return; }
 
         initAudio();
         if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -267,6 +452,8 @@
         userOut.connect(masterGain);
 
         try {
+            // Wrapper s gettery pro Makra
+            // POZOR: Pokud měníš počet řádků zde, uprav výpočet řádku v logToConsole (-6)
             const wrapper = `
                 const audioContext = ctx; 
                 const destination = userOut; 
@@ -279,30 +466,56 @@
             run(audioCtx, userOut, window);
             
             logToConsole("Kompilace úspěšná. Audio běží.", "success");
-            document.getElementById('status').innerText = "PLAYING";
+            document.getElementById('status').innerText = "RUNNING";
+            document.getElementById('status').style.color = "var(--success)";
+            document.getElementById('status').style.borderColor = "var(--success)";
         } catch (e) {
-            logToConsole("RUNTIME ERROR: " + e.message, 'error');
+            logToConsole(e.message, 'error', e);
             stopAudio();
         }
     }
 
     function stopAudio() {
-        activeIntervals.forEach(clearInterval);
-        activeIntervals = [];
+        logToConsole("Provádím DEEP CLEAN...", "sys");
 
+        // 1. Zastavit všechny sledované intervaly a timeouty
+        _trackedIntervals.forEach(id => window.clearInterval(id));
+        _trackedTimeouts.forEach(id => window.clearTimeout(id));
+        // Vyčistit pole
+        _trackedIntervals.length = 0;
+        _trackedTimeouts.length = 0;
+
+        // 2. Zastavit všechny uživatelské Audio kontexty
+        _trackedContexts.forEach(ctx => {
+            if (ctx.state !== 'closed') ctx.close();
+        });
+        _trackedContexts.length = 0;
+
+        // 3. Odstranit všechny globální listenery (click atd.)
+        _trackedListeners.forEach(l => {
+            window.removeEventListener(l.type, l.listener, l.options);
+        });
+        _trackedListeners.length = 0;
+
+        // 4. Zastavit hlavní vizualizaci
         if (animationId) cancelAnimationFrame(animationId);
 
+        // 5. Zastavit hlavní Lab Audio
         if (audioCtx) {
             if(masterGain) masterGain.disconnect();
             audioCtx.close().then(() => { 
                 audioCtx = null; 
-                document.getElementById('status').innerText = "STOP"; 
             });
         }
         
+        // Reset UI
         document.getElementById('vuL').style.height = '0%';
         document.getElementById('vuR').style.height = '0%';
-        document.getElementById('status').innerText = "STOP"; 
+        document.getElementById('status').innerText = "STOPPED"; 
+        document.getElementById('status').style.color = "#666";
+        document.getElementById('status').style.borderColor = "#333";
+        
+        logToConsole("Všechny procesy ukončeny.", "sys");
     }
 
     // ==========================================
@@ -327,6 +540,7 @@
             analyser.getByteFrequencyData(dataArray);
             analyser.getByteTimeDomainData(timeArray);
 
+            // VU Meter calc
             let sum = 0;
             for(let i=0; i<bufferLen; i++) {
                 const x = (timeArray[i] - 128) / 128.0;
@@ -340,6 +554,7 @@
             if(vuL) vuL.style.height = vuHeight + '%';
             if(vuR) vuR.style.height = vuHeight + '%';
 
+            // Kreslení
             ctx.fillStyle = '#000';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -349,7 +564,7 @@
                 for (let i = 0; i < bufferLen; i++) {
                     const h = (dataArray[i] / 255) * canvas.height;
                     const r = h + (25 * (i/bufferLen));
-                    ctx.fillStyle = "rgb(" + r + "," + (250 * (i/bufferLen)) + ",50)";
+                    ctx.fillStyle = `rgb(${r}, ${250 * (i/bufferLen)}, 50)`;
                     ctx.fillRect(x, canvas.height - h, barWidth, h);
                     x += barWidth + 1;
                 }
@@ -392,18 +607,17 @@
             const data = await res.json();
 
             if (data.status === 'success') {
-                logToConsole("Přihlášení úspěšné", "success");
                 document.body.classList.add('logged-in');
                 sessionStorage.setItem('cloudAuth', 'true');
                 loadFromSheets();
+                logToConsole("Přihlášení úspěšné.", "success");
             } else {
                 err.innerText = data.message || "Nesprávné heslo.";
-                err.style.color = "var(--danger)";
                 if (btn) btn.disabled = false;
             }
         } catch (e) {
             console.error(e);
-            err.innerText = "Chyba komunikace. Zkontrolujte log.";
+            err.innerText = "Chyba komunikace.";
             if (btn) btn.disabled = false;
         }
     }
@@ -411,10 +625,10 @@
     async function saveToSheets() {
         const code = document.getElementById('editor').value;
         const name = document.getElementById('fnName').value || "Bez názvu";
-        logToConsole("Ukládám do cloudu...", "info");
+        logToConsole("Ukládám do cloudu...", "sys");
         try {
             await fetch(SHEETS_URL, { method: 'POST', body: JSON.stringify({ action: "save", name, code }) });
-            logToConsole("Uloženo!", "success");
+            logToConsole("Uloženo úspěšně!", "success");
         } catch(e) { logToConsole("Chyba ukládání", "error"); }
     }
 
@@ -428,7 +642,7 @@
             data.reverse().forEach(item => {
                 const el = document.createElement('div'); 
                 el.className = 'lib-item';
-                el.innerHTML = "<strong>" + item.name + "</strong>";
+                el.innerHTML = `<strong>${item.name}</strong>`;
                 el.onclick = () => { 
                     document.getElementById('editor').value = item.code; 
                     document.getElementById('fnName').value = item.name; 
@@ -440,13 +654,6 @@
 
     if (sessionStorage.getItem('cloudAuth') === 'true') document.body.classList.add('logged-in');
 
-    const originalSetInterval = window.setInterval;
-    window.setInterval = function(func, delay) {
-        const id = originalSetInterval(func, delay);
-        activeIntervals.push(id);
-        return id;
-    };
-
     const PRESETS = {
         macro: `// --- MAKRO TEST ---
 const osc = ctx.createOscillator();
@@ -456,6 +663,7 @@ osc.connect(gain); gain.connect(destination);
 osc.start();
 
 setInterval(() => {
+  // A = Frekvence, B = Hlasitost
   osc.frequency.setTargetAtTime(getA(), ctx.currentTime, 0.05);
   gain.gain.setTargetAtTime(getB(), ctx.currentTime, 0.05);
 }, 50);`,
@@ -490,7 +698,122 @@ addLayer(freq * 0.5, 0.15, 6, Math.sin(t)*2);
 addLayer(freq * 0.502, 0.15, 6);`,
 
         fire: `// --- TŘÍDA OHEŇ ---
-// (Pro vložení kódu použijte třídu z minulé konverzace)`
+// Class se bude chovat poslušně, protože používá 'ctx' z Labu
+class AudioSystem {
+    constructor() {
+        this.audioContext = ctx; // Používáme Lab kontext
+        this.masterGain = this.audioContext.createGain();
+        this.masterGain.gain.value = 0.5;
+        this.masterGain.connect(destination);
+        this.isPlaying = false;
+    }
+    start() {
+        if(this.isPlaying) return;
+        this.isPlaying = true;
+        this.startRumble();
+    }
+    startRumble() {
+        const buf = this.audioContext.createBuffer(1, 44100, 44100);
+        const data = buf.getChannelData(0);
+        for(let i=0; i<44100; i++) data[i] = Math.random() * 2 - 1;
+        
+        const src = this.audioContext.createBufferSource();
+        src.buffer = buf;
+        src.loop = true;
+        src.connect(this.masterGain);
+        src.start();
+    }
+}
+const fire = new AudioSystem();
+fire.start();`,
+
+        unstoppable: `// --- ☠️ UNSTOPPABLE FIRE (TEST DEEP CLEAN) ---
+// Tento kód záměrně porušuje pravidla Labu:
+// 1. Vytváří vlastní AudioContext
+// 2. Používá globální setTimeout
+// 3. Přidává globální click listener
+// Tlačítko 'KILL ALL' ho ale stejně dostane!
+
+(function() {
+    // Vytvoříme vlastní kontext (JOUZA LAB ho detekuje)
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    console.log("Krb se sidechain kompresí připraven. KLIKNI KAMKOLIV PRO SPUŠTĚNÍ.");
+
+    const startFire = () => {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const duration = 60;
+        const now = audioCtx.currentTime;
+
+        const noiseBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 5, audioCtx.sampleRate);
+        const nd = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+
+        function makeDistortionCurve(amount) {
+            const k = amount, n_samples = 44100, curve = new Float32Array(n_samples), deg = Math.PI / 180;
+            for (let i = 0; i < n_samples; ++i) {
+                const x = i * 2 / n_samples - 1;
+                curve[i] = (3 + k) * x * 20 * deg / (Math.PI + k * Math.abs(x));
+            }
+            return curve;
+        }
+
+        const roar = audioCtx.createBufferSource();
+        roar.buffer = noiseBuffer; roar.loop = true;
+        
+        const roarF = audioCtx.createBiquadFilter();
+        roarF.type = 'lowpass'; roarF.frequency.value = 100; roarF.Q.value = 1.5;
+        
+        const distortion = audioCtx.createWaveShaper();
+        distortion.curve = makeDistortionCurve(15);
+        
+        const sidechainGain = audioCtx.createGain();
+        sidechainGain.gain.value = 1.0; 
+
+        const roarG = audioCtx.createGain();
+        roarG.gain.value = 0.15;
+
+        roar.connect(roarF); 
+        roarF.connect(distortion); 
+        distortion.connect(sidechainGain); 
+        sidechainGain.connect(roarG);
+        roarG.connect(audioCtx.destination);
+        roar.start(now);
+
+        function applySidechain(reduction, attack, release) {
+            const t = audioCtx.currentTime;
+            sidechainGain.gain.cancelScheduledValues(t);
+            sidechainGain.gain.setValueAtTime(sidechainGain.gain.value, t);
+            sidechainGain.gain.linearRampToValueAtTime(1.0 - reduction, t + attack);
+            sidechainGain.gain.exponentialRampToValueAtTime(1.0, t + attack + release);
+        }
+
+        // --- HLUČNÉ PRASKÁNÍ (Časovače) ---
+        function triggerLoudSnap() {
+            if (audioCtx.currentTime > now + duration) return;
+            const t = audioCtx.currentTime;
+            applySidechain(0.5, 0.005, 0.4);
+
+            const s = audioCtx.createBufferSource(); s.buffer = noiseBuffer;
+            const f = audioCtx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 350; f.Q.value = 5;
+            const g = audioCtx.createGain();
+            g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.5, t + 0.002); g.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+            s.connect(f); f.connect(g); g.connect(audioCtx.destination);
+            s.start(t);
+            
+            // Rekurzivní setTimeout (JOUZA LAB ho musí chytit)
+            setTimeout(triggerLoudSnap, 2000 + Math.random() * 2000);
+        }
+
+        triggerLoudSnap();
+        
+        // Listener se sám odstraní jen po kliknutí, ale co když klikneme STOP dřív?
+        // JOUZA LAB to musí ošetřit.
+        window.removeEventListener('click', startFire);
+    };
+    
+    // Globální listener (JOUZA LAB ho musí chytit)
+    window.addEventListener('click', startFire);
+})();`
     };
 
     function loadPreset() {
