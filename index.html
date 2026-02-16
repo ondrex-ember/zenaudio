@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JOUZA AUDIO LAB v5.2 (Fokus Edition)</title>
+    <title>JOUZA AUDIO LAB v5.3</title>
 <style>
     :root { 
         --primary: #00e5ff; 
@@ -50,7 +50,7 @@
         padding: 15px;
         height: 100%;
         width: 100%;
-        max-width: 1600px;
+        max-width: 100%; /* Plná šířka */
         margin: 0 auto;
         opacity: 0; 
         filter: blur(10px); 
@@ -59,14 +59,15 @@
     
     body.logged-in #app-content { opacity: 1; filter: none; }
 
-    /* HEADER */
-    header { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 5px; }
-    h1 { margin: 0; font-weight: 200; letter-spacing: 3px; color: var(--primary); text-transform: uppercase; font-size: 1.4rem; flex-shrink: 0; }
+    /* HEADER - ULTRA WIDE UPDATE */
+    header { grid-column: 1 / -1; display: flex; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 5px; gap: 10px; }
+    h1 { margin: 0; font-weight: 200; letter-spacing: 3px; color: var(--primary); text-transform: uppercase; font-size: 1.2rem; width: 200px; flex-shrink: 0; overflow: hidden; white-space: nowrap; }
     h1 span { font-weight: 700; color: #fff; }
 
-    /* BIO MONITOR PROTAŽENÝ */
-    .bio-monitor { display: flex; align-items: center; gap: 15px; flex-grow: 1; justify-content: flex-end; padding-right: 20px; }
-    #bp-canvas { width: 400px; height: 35px; border-radius: 4px; background: rgba(0,0,0,0.4); border: 1px solid #222; }
+    /* BIO MONITOR - FULL STRETCH */
+    .bio-monitor { display: flex; align-items: center; gap: 10px; flex-grow: 1; }
+    #bp-canvas { flex-grow: 1; height: 35px; border-radius: 4px; background: rgba(0,0,0,0.4); border: 1px solid #222; }
+    #status { font-size: 0.8em; color: #666; font-family: monospace; border: 1px solid #333; padding: 2px 8px; border-radius: 4px; flex-shrink: 0; }
 
     /* MAIN PANEL */
     .main-area { display: flex; flex-direction: column; gap: 10px; height: 100%; overflow: hidden; }
@@ -192,7 +193,7 @@
 <body>
 
     <div id="login-overlay">
-        <h2 style="color:var(--primary); font-weight:300; letter-spacing:4px; margin-bottom:30px;">JOUZA AUDIO LAB <span style="font-size:0.5em; opacity:0.5">v5.2</span></h2>
+        <h2 style="color:var(--primary); font-weight:300; letter-spacing:4px; margin-bottom:30px;">JOUZA AUDIO LAB <span style="font-size:0.5em; opacity:0.5">v5.3</span></h2>
         <input type="password" id="passwordInput" placeholder="•••••••">
         <button id="loginBtn" onclick="cloudLogin()">VSTOUPIT</button>
         <p id="login-error" style="color:var(--danger); height:20px; margin-top:15px;"></p>
@@ -201,10 +202,10 @@
     <div id="app-content">
         
         <header>
-            <h1>JOUZA <span>AUDIO LAB</span></h1>
+            <h1>JOUZA AUDIO LAB</h1>
             <div class="bio-monitor">
                 <canvas id="bp-canvas" title="Arteriální tlaková křivka"></canvas>
-                <div id="status" style="font-size:0.8em; color:#666; font-family:monospace; border: 1px solid #333; padding: 2px 8px; border-radius: 4px;">SYSTEM READY</div>
+                <div id="status">SYSTEM READY</div>
             </div>
         </header>
 
@@ -254,7 +255,7 @@
             </div>
 
             <div id="consoleOutput">
-                <div class="log-line"><span class="log-time">System</span><span class="log-msg log-sys">Jouza Lab v5.2 Fokus Edition Ready. Pulse Monitor Active.</span></div>
+                <div class="log-line"><span class="log-time">System</span><span class="log-msg log-sys">Jouza Lab v5 ready.</span></div>
             </div>
 
             <div class="controls">
@@ -359,7 +360,7 @@
     }
 
     // ==========================================
-    // 2. LOGGING & DYNAMICKÉ NÁZVY
+    // 2. LOGGING & UTILS
     // ==========================================
     function logToConsole(msg, type = 'info', errorObj = null) {
         const con = document.getElementById('consoleOutput');
@@ -416,6 +417,7 @@
             logToConsole("Audio běží.", "success");
             document.getElementById('status').innerText = "RUNNING";
             document.getElementById('status').style.color = "var(--success)";
+            document.getElementById('status').style.borderColor = "var(--success)";
             document.getElementById('fnName').value = generateTimestampName();
         } catch (e) { logToConsole(e.message, 'error', e); stopAudio(); }
     }
@@ -429,12 +431,13 @@
         if (audioCtx) audioCtx.close().then(() => { audioCtx = null; });
         document.getElementById('status').innerText = "STOPPED";
         document.getElementById('status').style.color = "#666";
+        document.getElementById('status').style.borderColor = "#333";
         document.getElementById('vuL').style.height = '0%';
         document.getElementById('vuR').style.height = '0%';
     }
 
     // ==========================================
-    // 4. VIZUALIZACE (Pulse & Bio Monitor)
+    // 4. VIZUALIZACE (Pulse & Wide Bio Monitor)
     // ==========================================
     function visualize() {
         const canvas = document.getElementById('visualizer');
@@ -482,26 +485,34 @@
         const canvas = document.getElementById('bp-canvas');
         if(!canvas) return;
         const ctx = canvas.getContext('2d');
-        canvas.width = 400; canvas.height = 35; // Prodlouženo
         
         function animate() {
             bpAnimationId = requestAnimationFrame(animate);
+            
+            // Reaguj na změnu velikosti okna
+            if(canvas.width !== canvas.clientWidth) {
+                canvas.width = canvas.clientWidth;
+                canvas.height = canvas.clientHeight;
+                bpData = []; // Reset dat při změně velikosti
+            }
+
             if (!audioCtx) { 
                 ctx.clearRect(0,0,canvas.width, canvas.height);
-                ctx.strokeStyle = '#333'; ctx.beginPath(); ctx.moveTo(0,17); ctx.lineTo(canvas.width,17); ctx.stroke();
+                ctx.strokeStyle = '#333'; ctx.beginPath(); ctx.moveTo(0,canvas.height/2); ctx.lineTo(canvas.width,canvas.height/2); ctx.stroke();
                 return; 
             }
 
             let rms = parseFloat(document.getElementById('vuL').style.height) || 0;
             let speed = 0.08 + (rms * 0.005);
             let amplitude = 2 + (rms * 0.15);
-            let targetY = 17 - (Math.sin(Date.now() * speed) * amplitude);
+            let centerY = canvas.height / 2;
+            let targetY = centerY - (Math.sin(Date.now() * speed) * amplitude);
             
-            // Simulej reálný aortální "zub" (Dicrotic Notch)
+            // Arteriální "zub"
             if(Math.sin(Date.now() * speed) > 0.85) targetY -= 6;
 
             bpData.push(targetY);
-            if (bpData.length > 400) bpData.shift(); // Sleduje celou šířku
+            if (bpData.length > canvas.width) bpData.shift(); 
 
             ctx.clearRect(0,0,canvas.width, canvas.height);
             ctx.strokeStyle = '#00e676'; ctx.lineWidth = 1.5; ctx.beginPath();
@@ -514,40 +525,29 @@
     }
 
     // ==========================================
-    // 5. CLOUD LOGIN FIX & SAVE
+    // 5. CLOUD LOGIN & SAVE
     // ==========================================
     async function cloudLogin() {
         const input = document.getElementById('passwordInput').value;
         const err = document.getElementById('login-error');
         const btn = document.getElementById('loginBtn');
-        
         if (!input) return;
         err.innerText = "Ověřuji...";
         btn.disabled = true;
-
         try {
             const res = await fetch(SHEETS_URL, {
-                method: 'POST', 
-                mode: 'cors', 
-                redirect: 'follow',
+                method: 'POST', mode: 'cors', redirect: 'follow',
                 body: JSON.stringify({ action: "login", password: input }),
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' }
             });
             const data = await res.json();
-
             if (data.status === 'success') {
                 document.body.classList.add('logged-in');
                 sessionStorage.setItem('cloudAuth', 'true');
                 loadFromSheets();
                 logToConsole("Přihlášení úspěšné.", "success");
-            } else {
-                err.innerText = "Nesprávné heslo.";
-                btn.disabled = false;
-            }
-        } catch (e) {
-            err.innerText = "Chyba komunikace.";
-            btn.disabled = false;
-        }
+            } else { err.innerText = "Nesprávné heslo."; btn.disabled = false; }
+        } catch (e) { err.innerText = "Chyba komunikace."; btn.disabled = false; }
     }
 
     async function saveToSheets() {
@@ -579,7 +579,7 @@
     if (sessionStorage.getItem('cloudAuth') === 'true') document.body.classList.add('logged-in');
 
     // ==========================================
-    // 6. PRESETY (Expanded)
+    // 6. PRESETY (Nomad Selection)
     // ==========================================
     const PRESETS = {
         macro: `// --- MAKRO TEST ---\nconst osc = ctx.createOscillator();\nconst gain = ctx.createGain();\nosc.type = 'sawtooth';\nosc.connect(gain); gain.connect(destination);\nosc.start();\n\nsetInterval(() => {\n  osc.frequency.setTargetAtTime(getA(), ctx.currentTime, 0.05);\n  gain.gain.setTargetAtTime(getB(), ctx.currentTime, 0.05);\n}, 50);`,
