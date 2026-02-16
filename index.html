@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JOUZA Audio Lab by Ondrex & some LLMs + Woschlej</title>
+    <title>JOUZA AUDIO LAB v3.2 (by Ondrex & LLMs)</title>
 <style>
     :root { 
         --primary: #00e5ff; 
@@ -15,10 +15,21 @@
         --success: #00e676; 
         --code-bg: #141414;
         --border: #333;
+        --scroll-track: #0f0f0f;
+        --scroll-thumb: #333;
+        --scroll-hover: #555;
     }
     
     * { box-sizing: border-box; }
     
+    /* --- SCROLLBAR MAGIC (STEALTH MODE) --- */
+    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    ::-webkit-scrollbar-track { background: var(--scroll-track); }
+    ::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: 5px; border: 2px solid var(--scroll-track); }
+    ::-webkit-scrollbar-thumb:hover { background: var(--scroll-hover); }
+    /* Pro Firefox */
+    * { scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) var(--scroll-track); }
+
     body { 
         font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
         background-color: var(--bg); 
@@ -66,7 +77,7 @@
         padding: 10px; 
         border-radius: 6px; 
         border: 1px solid var(--border);
-        flex-shrink: 0; /* Dashboard se nezmenšuje */
+        flex-shrink: 0; 
     }
 
     /* VIZUALIZER */
@@ -124,7 +135,6 @@
         white-space: pre;
     }
     
-    /* Zvýraznění aktivního řádku (simulace) - volitelné vylepšení */
     textarea#editor:focus { box-shadow: inset 2px 0 0 var(--primary); }
 
     /* KONZOLE (Vylepšená) */
@@ -181,7 +191,7 @@
     #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #050505; z-index: 999; display: flex; justify-content: center; align-items: center; flex-direction: column; transition: opacity 0.5s; }
     body.logged-in #login-overlay { opacity: 0; pointer-events: none; }
     
-    #login-overlay input { text-align: center; font-size: 1.2rem; letter-spacing: 5px; width: 300px; padding: 15px; margin-bottom: 20px; border: 1px solid #333; }
+    #login-overlay input { text-align: center; font-size: 1.2rem; letter-spacing: 5px; width: 300px; padding: 15px; margin-bottom: 20px; border: 1px solid #333; background: #111; color: white; }
     #login-overlay button { font-size: 1rem; padding: 10px 40px; background: var(--primary); color: #000; }
 
     /* FOOTER */
@@ -194,7 +204,7 @@
 <body>
 
     <div id="login-overlay">
-        <h2 style="color:var(--primary); font-weight:300; letter-spacing:4px; margin-bottom:30px;">JOUZA AUDIO LAB <span style="font-size:0.5em; opacity:0.5">v3.0</span></h2>
+        <h2 style="color:var(--primary); font-weight:300; letter-spacing:4px; margin-bottom:30px;">JOUZA AUDIO LAB <span style="font-size:0.5em; opacity:0.5">v3.2</span></h2>
         <input type="password" id="passwordInput" placeholder="•••••••">
         <button onclick="cloudLogin()">VSTOUPIT</button>
         <p id="login-error" style="color:var(--danger); height:20px; margin-top:15px;"></p>
@@ -249,11 +259,11 @@
                     <span>JAVASCRIPT EDITOR</span>
                     <span>Use: ctx, destination, pA, pB, pC</span>
                 </div>
-                <textarea id="editor" spellcheck="false" placeholder="// Vítej v JOUZA AUDIO LAB v3.0&#10;// Napiš kód a stiskni RUN..."></textarea>
+                <textarea id="editor" spellcheck="false" placeholder="// Vítej v JOUZA AUDIO LAB v3.2&#10;// Napiš kód a stiskni RUN..."></textarea>
             </div>
 
             <div id="consoleOutput">
-                <div class="log-line"><span class="log-time">System</span><span class="log-msg log-sys">Jouza Audio Lab v3.0 initialized. Waiting for input...</span></div>
+                <div class="log-line"><span class="log-time">System</span><span class="log-msg log-sys">Jouza Audio Lab v3.2 initialized. Waiting for input...</span></div>
             </div>
 
             <div class="controls">
@@ -292,16 +302,12 @@
         </div>
 
         <footer>
-    <footer id="app-footer">
-        <div class="footer-links">
-            <a href="https://www.ember-pa.cz/" target="_blank">🔥 Ember PA</a> | 
-            <a href="https://open.spotify.com/user/ondrex?si=82674543a7874e3d" target="_blank">🎵 Spotify</a> | 
-            <a href="https://ondrex-ember.github.io/doupe-2/" target="_blank">👾 Doupě 2</a> |
-            <a href="https://ondrex-ember.github.io/tech-1000-piv/" target="_blank">🍺</a>
-        </div>
-        <div style="color:#666; font-size:0.75em;">Vyvíjeno s <span style="color:#e91e63">❤️</span> v Novém Boru by <strong>Ondrex</strong></div>
-    </footer>
-            <div>Vyvíjeno s <span style="color:#e91e63">❤️</span> v Novém Boru by <strong>Ondrex</strong></div>
+            <div class="footer-links">
+                <a href="https://emberpa.cz" target="_blank">🔥 Ember PA</a>
+                <a href="#" target="_blank">🎵 Spotify</a>
+                <a href="#" target="_blank">👾 Doupě 2</a>
+            </div>
+            <div>Vyvíjeno s <span style="color:#e91e63">❤️</span> v Novém Boru by <strong>Ondrex</strong> & <span style="opacity:0.6; font-style:italic;">LLMs</span></div>
         </footer>
 
     </div>
@@ -310,7 +316,6 @@
     // ==========================================
     // 0. DEEP CLEAN & TRACKING SYSTEM (Špionáž)
     // ==========================================
-    // Tímto obelstíme kód, který se snaží vytvořit vlastní kontexty a intervaly
     
     const _trackedContexts = [];
     const _trackedTimeouts = [];
@@ -342,7 +347,7 @@
         return id;
     };
 
-    // 4. Špion pro EventListenery (aby šlo zrušit 'click' a další)
+    // 4. Špion pro EventListenery
     const originalAddEventListener = window.addEventListener;
     window.addEventListener = function(type, listener, options) {
         _trackedListeners.push({ type, listener, options });
@@ -382,14 +387,10 @@
         
         let lineNum = '';
         
-        // Pokus o extrakci řádku z chyby
         if (type === 'error' && errorObj && errorObj.stack) {
-            // Stack trace vypadá např: "TypeError: ... at eval (eval at playAudio ...), <anonymous>:6:15"
-            // Uživatelův kód je posunutý o wrapper (cca 5 řádků)
             const stackLines = errorObj.stack.split('\n');
-            const match = stackLines[1]?.match(/:(\d+):\d+/); // Najdi číslo řádku
+            const match = stackLines[1]?.match(/:(\d+):\d+/);
             if (match) {
-                // Odečteme hlavičku wrapperu, abychom dostali řádek v editoru
                 const realLine = parseInt(match[1]) - 6; 
                 if (realLine > 0) lineNum = `Line ${realLine}`;
             }
@@ -407,7 +408,7 @@
         `;
         
         con.appendChild(lineDiv);
-        con.scrollTop = con.scrollHeight; // Auto-scroll
+        con.scrollTop = con.scrollHeight;
     }
 
     function checkBrackets(code) {
@@ -422,7 +423,6 @@
     // ==========================================
     function initAudio() {
         if (!audioCtx || audioCtx.state === 'closed') {
-            // Tady použijeme originální konstruktor, abychom si nezaplevelili trackedContexts
             audioCtx = new OriginalAudioContext();
             masterGain = audioCtx.createGain();
             analyser = audioCtx.createAnalyser();
@@ -438,7 +438,6 @@
     }
 
     function playAudio() {
-        // Nejprve vše zabít
         stopAudio();
 
         const code = document.getElementById('editor').value;
@@ -452,7 +451,6 @@
         userOut.connect(masterGain);
 
         try {
-            // Wrapper s gettery pro Makra
             // POZOR: Pokud měníš počet řádků zde, uprav výpočet řádku v logToConsole (-6)
             const wrapper = `
                 const audioContext = ctx; 
@@ -478,29 +476,23 @@
     function stopAudio() {
         logToConsole("Provádím DEEP CLEAN...", "sys");
 
-        // 1. Zastavit všechny sledované intervaly a timeouty
         _trackedIntervals.forEach(id => window.clearInterval(id));
         _trackedTimeouts.forEach(id => window.clearTimeout(id));
-        // Vyčistit pole
         _trackedIntervals.length = 0;
         _trackedTimeouts.length = 0;
 
-        // 2. Zastavit všechny uživatelské Audio kontexty
         _trackedContexts.forEach(ctx => {
             if (ctx.state !== 'closed') ctx.close();
         });
         _trackedContexts.length = 0;
 
-        // 3. Odstranit všechny globální listenery (click atd.)
         _trackedListeners.forEach(l => {
             window.removeEventListener(l.type, l.listener, l.options);
         });
         _trackedListeners.length = 0;
 
-        // 4. Zastavit hlavní vizualizaci
         if (animationId) cancelAnimationFrame(animationId);
 
-        // 5. Zastavit hlavní Lab Audio
         if (audioCtx) {
             if(masterGain) masterGain.disconnect();
             audioCtx.close().then(() => { 
@@ -508,7 +500,6 @@
             });
         }
         
-        // Reset UI
         document.getElementById('vuL').style.height = '0%';
         document.getElementById('vuR').style.height = '0%';
         document.getElementById('status').innerText = "STOPPED"; 
@@ -540,7 +531,6 @@
             analyser.getByteFrequencyData(dataArray);
             analyser.getByteTimeDomainData(timeArray);
 
-            // VU Meter calc
             let sum = 0;
             for(let i=0; i<bufferLen; i++) {
                 const x = (timeArray[i] - 128) / 128.0;
@@ -554,7 +544,6 @@
             if(vuL) vuL.style.height = vuHeight + '%';
             if(vuR) vuR.style.height = vuHeight + '%';
 
-            // Kreslení
             ctx.fillStyle = '#000';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -698,10 +687,9 @@ addLayer(freq * 0.5, 0.15, 6, Math.sin(t)*2);
 addLayer(freq * 0.502, 0.15, 6);`,
 
         fire: `// --- TŘÍDA OHEŇ ---
-// Class se bude chovat poslušně, protože používá 'ctx' z Labu
 class AudioSystem {
     constructor() {
-        this.audioContext = ctx; // Používáme Lab kontext
+        this.audioContext = ctx; 
         this.masterGain = this.audioContext.createGain();
         this.masterGain.gain.value = 0.5;
         this.masterGain.connect(destination);
@@ -727,15 +715,8 @@ class AudioSystem {
 const fire = new AudioSystem();
 fire.start();`,
 
-        unstoppable: `// --- ☠️ UNSTOPPABLE FIRE (TEST DEEP CLEAN) ---
-// Tento kód záměrně porušuje pravidla Labu:
-// 1. Vytváří vlastní AudioContext
-// 2. Používá globální setTimeout
-// 3. Přidává globální click listener
-// Tlačítko 'KILL ALL' ho ale stejně dostane!
-
+        unstoppable: `// --- ☠️ UNSTOPPABLE FIRE ---
 (function() {
-    // Vytvoříme vlastní kontext (JOUZA LAB ho detekuje)
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     console.log("Krb se sidechain kompresí připraven. KLIKNI KAMKOLIV PRO SPUŠTĚNÍ.");
 
@@ -787,7 +768,6 @@ fire.start();`,
             sidechainGain.gain.exponentialRampToValueAtTime(1.0, t + attack + release);
         }
 
-        // --- HLUČNÉ PRASKÁNÍ (Časovače) ---
         function triggerLoudSnap() {
             if (audioCtx.currentTime > now + duration) return;
             const t = audioCtx.currentTime;
@@ -800,18 +780,14 @@ fire.start();`,
             s.connect(f); f.connect(g); g.connect(audioCtx.destination);
             s.start(t);
             
-            // Rekurzivní setTimeout (JOUZA LAB ho musí chytit)
             setTimeout(triggerLoudSnap, 2000 + Math.random() * 2000);
         }
 
         triggerLoudSnap();
         
-        // Listener se sám odstraní jen po kliknutí, ale co když klikneme STOP dřív?
-        // JOUZA LAB to musí ošetřit.
         window.removeEventListener('click', startFire);
     };
     
-    // Globální listener (JOUZA LAB ho musí chytit)
     window.addEventListener('click', startFire);
 })();`
     };
