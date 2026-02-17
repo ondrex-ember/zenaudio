@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JOUZA AUDIO LAB v5.4 (Restored & Ultimate)</title>
+    <title>JOUZA AUDIO LAB v5.6 (Pulse Fix)</title>
 <style>
     :root { 
         --primary: #00e5ff; 
@@ -15,25 +15,19 @@
         --success: #00e676; 
         --code-bg: #141414;
         --border: #333;
-        --scroll-track: #0f0f0f;
-        --scroll-thumb: #333;
-        --scroll-hover: #555;
     }
     
     * { box-sizing: border-box; }
-    
     ::-webkit-scrollbar { width: 10px; height: 10px; }
-    ::-webkit-scrollbar-track { background: var(--scroll-track); }
-    ::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: 5px; border: 2px solid var(--scroll-track); }
-    ::-webkit-scrollbar-thumb:hover { background: var(--scroll-hover); }
+    ::-webkit-scrollbar-track { background: #0f0f0f; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 5px; }
 
     body { 
-        font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+        font-family: 'Segoe UI', Roboto, sans-serif; 
         background-color: var(--bg); color: var(--text); 
         margin: 0; padding: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column;
     }
 
-    /* --- LAYOUT --- */
     #app-content {
         display: grid;
         grid-template-columns: 3fr 1.2fr;
@@ -43,14 +37,20 @@
     }
     body.logged-in #app-content { opacity: 1; filter: none; }
 
-    /* HEADER - ULTRA WIDE */
+    /* HEADER - ULTRA WIDE FIX */
     header { grid-column: 1 / -1; display: flex; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 5px; gap: 10px; }
-    h1 { margin: 0; font-weight: 200; letter-spacing: 3px; color: var(--primary); text-transform: uppercase; font-size: 1.2rem; width: 273px; flex-shrink: 0; overflow: hidden; white-space: nowrap; }
+    h1 { margin: 0; font-weight: 200; letter-spacing: 3px; color: var(--primary); text-transform: uppercase; font-size: 1.2rem; width: 200px; flex-shrink: 0; overflow: hidden; white-space: nowrap; }
     h1 span { font-weight: 700; color: #fff; }
 
     .bio-monitor { display: flex; align-items: center; gap: 10px; flex-grow: 1; }
     #bp-canvas { flex-grow: 1; height: 35px; border-radius: 4px; background: rgba(0,0,0,0.4); border: 1px solid #222; }
-    #status { font-size: 0.8em; color: #666; font-family: monospace; border: 1px solid #333; padding: 2px 8px; border-radius: 4px; flex-shrink: 0; }
+    
+    /* STATUS SVĚTLO */
+    #status { 
+        font-size: 0.7em; color: #666; font-family: monospace; font-weight: bold;
+        border: 1px solid #333; padding: 4px 10px; border-radius: 4px; 
+        flex-shrink: 0; transition: 0.3s; text-transform: uppercase;
+    }
 
     .main-area { display: flex; flex-direction: column; gap: 10px; height: 100%; overflow: hidden; }
 
@@ -59,9 +59,9 @@
         background: var(--panel); padding: 10px; border-radius: 6px; border: 1px solid var(--border); flex-shrink: 0; 
     }
 
-    .viz-wrapper { position: relative; height: 140px; background: #000; border-radius: 4px; border: 1px solid var(--border); overflow: hidden; }
+    .viz-wrapper { position: relative; height: 180px; background: #000; border-radius: 4px; border: 1px solid var(--border); overflow: hidden; }
     canvas#visualizer { width: 100%; height: 100%; display: block; }
-    .viz-select { position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.8); color: var(--primary); border: 1px solid #444; font-size: 0.7em; cursor: pointer; padding: 2px; }
+    .viz-select { position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.8); color: var(--primary); border: 1px solid #444; font-size: 0.7em; cursor: pointer; padding: 2px; z-index: 10; }
 
     .controls-grid { display: flex; gap: 10px; }
     .vu-section { display: flex; gap: 3px; height: 100%; padding: 5px; background: #0a0a0a; border: 1px solid var(--border); border-radius: 4px; }
@@ -81,52 +81,45 @@
         background: #1f1f1f; padding: 5px 10px; font-size: 0.75em; color: #666; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between;
     }
     textarea#editor { 
-        flex-grow: 1; width: 100%; background: transparent; color: #d4d4d4; border: none; padding: 15px; font-family: 'Fira Code', 'Consolas', monospace; font-size: 14px; line-height: 1.5; resize: none; outline: none; white-space: pre;
+        flex-grow: 1; width: 100%; background: transparent; color: #d4d4d4; border: none; padding: 15px; font-family: 'Fira Code', monospace; font-size: 14px; line-height: 1.5; resize: none; outline: none; white-space: pre;
     }
 
     #consoleOutput { 
-        height: 100px; background: #080808; border: 1px solid var(--border); border-radius: 6px; padding: 8px; font-family: 'Consolas', monospace; font-size: 0.8em; color: #aaa; overflow-y: auto; display: flex; flex-direction: column; gap: 2px;
+        height: 100px; background: #080808; border: 1px solid var(--border); border-radius: 6px; padding: 8px; font-family: monospace; font-size: 0.8em; color: #aaa; overflow-y: auto; display: flex; flex-direction: column; gap: 2px;
     }
     .log-line { display: flex; gap: 10px; border-bottom: 1px solid #111; padding: 2px 0; }
-    .log-time { color: #555; min-width: 60px; }
-    .log-msg { white-space: pre-wrap; word-break: break-all; }
     .log-sys { color: var(--primary); font-style: italic; }
-    .log-success { color: var(--success); }
-    .log-error { color: var(--danger); background: rgba(255, 64, 129, 0.1); }
-    .log-line-num { color: var(--warn); font-weight: bold; min-width: 50px; text-align: right; }
 
     .controls { display: flex; gap: 10px; padding: 10px 0; align-items: center; }
-    button { padding: 8px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; color: white; background: #333; transition: all 0.2s; font-size: 0.85em; text-transform: uppercase; letter-spacing: 1px; }
-    button:hover { filter: brightness(1.2); transform: translateY(-1px); }
+    button { padding: 8px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; color: white; background: #333; font-size: 0.85em; text-transform: uppercase; transition: 0.2s; }
+    button:hover { filter: brightness(1.2); }
     .btn-play { background: #2e7d32; } 
     .btn-stop { background: #c62828; } 
     .btn-save { background: #1565c0; margin-left: auto; }
-    input[type=range].master-vol { width: 100px; accent-color: #fff; }
-    input[type=text] { background: #111; border: 1px solid #444; color: white; padding: 8px; border-radius: 4px; width: 200px; }
+    input[type=range].master-vol { width: 100px; }
+    input[type=text] { background: #111; border: 1px solid #444; color: white; padding: 8px; border-radius: 4px; width: 220px; }
 
     .side-panel { display: flex; flex-direction: column; gap: 15px; height: 100%; overflow: hidden; }
     .panel-box { background: var(--panel); border: 1px solid var(--border); border-radius: 6px; display: flex; flex-direction: column; overflow: hidden; }
     .panel-header { padding: 10px; background: #222; border-bottom: 1px solid var(--border); font-size: 0.8em; font-weight: bold; color: #888; display: flex; justify-content: space-between; align-items: center; }
-    select { width: 100%; padding: 10px; background: #111; color: #fff; border: none; outline: none; cursor: pointer; }
+    select { width: 100%; padding: 10px; background: #111; color: #fff; border: none; }
     .lib-list { overflow-y: auto; flex-grow: 1; padding: 5px; }
-    .lib-item { padding: 8px 10px; border-bottom: 1px solid #2a2a2a; cursor: pointer; font-size: 0.85em; transition: 0.2s; border-radius: 4px; margin-bottom: 2px; }
-    .lib-item:hover { background: #2a2a2a; color: var(--primary); padding-left: 15px; }
+    .lib-item { padding: 8px 10px; border-bottom: 1px solid #2a2a2a; cursor: pointer; font-size: 0.85em; border-radius: 4px; }
+    .lib-item:hover { background: #2a2a2a; color: var(--primary); }
 
-    #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #050505; z-index: 999; display: flex; justify-content: center; align-items: center; flex-direction: column; transition: opacity 0.5s; }
-    body.logged-in #login-overlay { opacity: 0; pointer-events: none; display: none; }
-    #login-overlay input { text-align: center; font-size: 1.2rem; letter-spacing: 5px; width: 300px; padding: 15px; margin-bottom: 20px; border: 1px solid #333; background: #111; color: white; }
+    #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #050505; z-index: 999; display: flex; justify-content: center; align-items: center; flex-direction: column; }
+    body.logged-in #login-overlay { display: none; }
+    #login-overlay input { text-align: center; font-size: 1.2rem; width: 300px; padding: 15px; margin-bottom: 20px; border: 1px solid #333; background: #111; color: white; }
     #login-overlay button { font-size: 1rem; padding: 10px 40px; background: var(--primary); color: #000; }
 
     footer { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 10px; font-size: 0.75em; color: #555; }
-    .footer-links a { color: #777; text-decoration: none; margin-right: 15px; transition: color 0.2s; }
-    .footer-links a:hover { color: var(--primary); }
-
+    .footer-links a { color: #777; text-decoration: none; margin-right: 15px; }
 </style>
 </head>
 <body>
 
     <div id="login-overlay">
-        <h2 style="color:var(--primary); font-weight:300; letter-spacing:4px; margin-bottom:30px;">JOUZA AUDIO LAB <span style="font-size:0.5em; opacity:0.5">v5.4</span></h2>
+        <h2 style="color:var(--primary); font-weight:300; letter-spacing:4px; margin-bottom:30px;">JOUZA AUDIO LAB <span style="font-size:0.5em; opacity:0.5">v5.6</span></h2>
         <input type="password" id="passwordInput" placeholder="•••••••">
         <button id="loginBtn" onclick="cloudLogin()">VSTOUPIT</button>
         <p id="login-error" style="color:var(--danger); height:20px; margin-top:15px;"></p>
@@ -149,6 +142,7 @@
                     <select class="viz-select" id="vizType" onchange="vizMode=this.value">
                         <option value="wave">⚡ Osciloskop</option>
                         <option value="bar">📊 Spektrum</option>
+                        <option value="radial">🌀 Radiální Basy</option>
                     </select>
                     <canvas id="visualizer"></canvas>
                 </div>
@@ -160,90 +154,63 @@
                     </div>
                     
                     <div class="macro-section">
-                        <div class="macro-row">
-                            <label>A</label>
-                            <input type="range" id="macA" min="0" max="1000" value="50" oninput="updateMacros()">
-                            <span id="valA" class="macro-val">50</span>
-                        </div>
-                        <div class="macro-row">
-                            <label>B</label>
-                            <input type="range" id="macB" min="0" max="100" value="50" oninput="updateMacros()">
-                            <span id="valB" class="macro-val">0.5</span>
-                        </div>
-                        <div class="macro-row">
-                            <label>C</label>
-                            <input type="range" id="macC" min="0" max="1" step="0.01" value="0.5" oninput="updateMacros()">
-                            <span id="valC" class="macro-val">0.5</span>
-                        </div>
+                        <div class="macro-row"><label>A</label><input type="range" id="macA" min="0" max="1000" value="50" oninput="updateMacros()"><span id="valA" class="macro-val">50</span></div>
+                        <div class="macro-row"><label>B</label><input type="range" id="macB" min="0" max="100" value="50" oninput="updateMacros()"><span id="valB" class="macro-val">0.5</span></div>
+                        <div class="macro-row"><label>C</label><input type="range" id="macC" min="0" max="1" step="0.01" value="0.5" oninput="updateMacros()"><span id="valC" class="macro-val">0.5</span></div>
                     </div>
                 </div>
             </div>
 
             <div class="editor-container">
-                <div class="editor-header">
-                    <span>JAVASCRIPT EDITOR</span>
-                    <span>Use: ctx, destination, pA, pB, pC</span>
-                </div>
+                <div class="editor-header"><span>JAVASCRIPT EDITOR</span><span>Use: ctx, destination, getA(), getB(), getC()</span></div>
                 <textarea id="editor" spellcheck="false" placeholder="// Napiš kód a stiskni RUN..."></textarea>
             </div>
 
             <div id="consoleOutput">
-                <div class="log-line"><span class="log-time">System</span><span class="log-msg log-sys">Jouza Lab v5.4 Ultimate Restored.</span></div>
+                <div class="log-line"><span class="log-sys">Jouza Lab v5.6 Pulse Monitor & Ultimate Presets Ready.</span></div>
             </div>
 
             <div class="controls">
                 <button class="btn-play" onclick="playAudio()">▶ RUN CODE</button>
                 <button class="btn-stop" onclick="stopAudio()">⏹ KILL ALL</button>
-                
                 <div style="width: 1px; height: 30px; background: #333; margin: 0 10px;"></div>
-                
                 <span style="font-size:0.8em; color:#666;">MASTER:</span>
                 <input type="range" id="masterVolume" class="master-vol" min="0" max="1" step="0.01" value="0.5" oninput="setGlobalVolume(this.value)">
-                
                 <input type="text" id="fnName" placeholder="Název experimentu...">
                 <button class="btn-save" onclick="saveToSheets()">💾 ULOŽIT</button>
             </div>
-
         </div>
 
         <div class="side-panel">
             <div class="panel-box" style="flex-shrink: 0;">
-                <div class="panel-header">PRESETY (Full Library)</div>
+                <div class="panel-header">PRESETY</div>
                 <select id="presetSelect" onchange="loadPreset()" size="8" style="height: 160px;">
                     <option value="macro">🎛️ Test Maker (Osc)</option>
                     <option value="zen">🧘 Zen Mísa (Ambient)</option>
-                    <option value="fire">🔥 Class Oheň (Třída)</option>
-                    <option value="acid">🧬 ACID Tekno</option>
+                    <option value="fire">🔥 Class Oheň (AudioSystem)</option>
+                    <option value="acid">🧬 ACID Tekno (303)</option>
                     <option value="nomad">⛺ NOMAD Drone</option>
                     <option value="psy">👽 PSY FM Squelch</option>
                     <option value="unstoppable">☠️ UNSTOPPABLE FIRE</option>
                 </select>
             </div>
-            
             <div class="panel-box" style="flex-grow: 1;">
-                <div class="panel-header">
-                    CLOUD KNIHOVNA
-                    <span onclick="loadFromSheets()" style="cursor:pointer; color:var(--primary)">↻</span>
-                </div>
+                <div class="panel-header">CLOUD KNIHOVNA <span onclick="loadFromSheets()" style="cursor:pointer; color:var(--primary)">↻</span></div>
                 <div id="library" class="lib-list"></div>
             </div>
         </div>
 
         <footer>
             <div class="footer-links">
-                <a href="https://www.ember-pa.cz/" target="_blank">🔥 Ember PA</a>  |
-                <a href="https://open.spotify.com/user/ondrex?si=bac785a31b564159" target="_blank">🎵 Spotify</a>  |
-                <a href="https://ondrex-ember.github.io/doupe-2/" target="_blank">👾 Doupě 2</a>  |
-                <a href="https://ondrex-ember.github.io/tech-1000-piv/" target="_blank">🍺</a>
+                <a href="https://www.ember-pa.cz/" target="_blank">🔥 Ember PA</a> | <a href="https://open.spotify.com/user/ondrex?si=bac785a31b564159" target="_blank">🎵 Spotify</a> | <a href="https://ondrex-ember.github.io/doupe-2/" target="_blank">👾 Doupě 2</a> | <a href="https://ondrex-ember.github.io/tech-1000-piv/" target="_blank">🍺</a>
             </div>
-            <div>Vyvíjeno s <span style="color:#e91e63">❤️</span> v Novém Boru. <strong>By Ondrex</strong> & <strong>LLMs</strong> (feat. <strong>Woschlina</strong>)</div>
+            <div>Vyvíjeno s <span style="color:#e91e63">❤️</span> v Novém Boru. <strong>By Ondrex</strong> & <strong>Claude</strong> (feat. <strong>Woschlina</strong>)</div>
         </footer>
-
     </div>
 
 <script>
     // ==========================================
-    // 0. SYSTEM & TRACKING & BIO
+    // 0. DEEP CLEAN & TRACKING
     // ==========================================
     const _trackedContexts = [], _trackedTimeouts = [], _trackedIntervals = [];
     let bpData = []; 
@@ -253,75 +220,47 @@
         const ctx = new OriginalAudioContext(...args);
         _trackedContexts.push(ctx);
         const hijackGain = ctx.createGain();
-        const volSlider = document.getElementById('masterVolume');
-        hijackGain.gain.value = volSlider ? volSlider.value : 0.5;
+        hijackGain.gain.value = document.getElementById('masterVolume').value;
         hijackGain.connect(ctx.destination);
         ctx._hijackGain = hijackGain;
         try { Object.defineProperty(ctx, 'destination', { get: function() { return hijackGain; } }); } catch(e) {}
         return ctx;
     };
 
-    const originalSetTimeout = window.setTimeout;
-    window.setTimeout = function(fn, delay) { const id = originalSetTimeout(fn, delay); _trackedTimeouts.push(id); return id; };
-    const originalSetInterval = window.setInterval;
-    window.setInterval = function(fn, delay) { const id = originalSetInterval(fn, delay); _trackedIntervals.push(id); return id; };
-
     function setGlobalVolume(val) {
         if(masterGain) masterGain.gain.value = val;
         _trackedContexts.forEach(ctx => { if(ctx._hijackGain) ctx._hijackGain.gain.value = val; });
     }
 
-    // ==========================================
-    // 1. CONFIG & GLOBALS
-    // ==========================================
     const SHEETS_URL = "https://script.google.com/macros/s/AKfycbwe8O3qqe-C0yLm08EDFZGqHkEIdswZ6DCAuTd4rSMM90P5bp1HZCGw4G9jg7gU0W2I/exec"; 
     let audioCtx, masterGain, analyser, animationId, bpAnimationId;
     let vizMode = 'wave';
     window.MACROS = { A: 50, B: 0.5, C: 0.5 };
 
     function updateMacros() {
-        const a = parseFloat(document.getElementById('macA').value);
-        const b = parseFloat(document.getElementById('macB').value) / 100;
-        const c = parseFloat(document.getElementById('macC').value);
-        document.getElementById('valA').innerText = a;
-        document.getElementById('valB').innerText = b.toFixed(2);
-        document.getElementById('valC').innerText = c.toFixed(2);
-        window.MACROS = { A: a, B: b, C: c };
+        window.MACROS.A = parseFloat(document.getElementById('macA').value);
+        window.MACROS.B = parseFloat(document.getElementById('macB').value) / 100;
+        window.MACROS.C = parseFloat(document.getElementById('macC').value);
+        document.getElementById('valA').innerText = window.MACROS.A;
+        document.getElementById('valB').innerText = window.MACROS.B.toFixed(2);
+        document.getElementById('valC').innerText = window.MACROS.C.toFixed(2);
     }
 
-    function logToConsole(msg, type = 'info', errorObj = null) {
+    function logToConsole(msg, type = 'info') {
         const con = document.getElementById('consoleOutput');
-        if(!con) return;
-        const time = new Date().toLocaleTimeString();
-        const lineDiv = document.createElement('div');
-        lineDiv.className = 'log-line';
-        let lineNum = '';
-        if (type === 'error' && errorObj && errorObj.stack) {
-            const match = errorObj.stack.split('\n')[1]?.match(/:(\d+):\d+/);
-            if (match) lineNum = `Line ${parseInt(match[1]) - 6}`;
-        }
-        let css = type === 'sys' ? 'log-sys' : type === 'success' ? 'log-success' : type === 'error' ? 'log-error' : 'log-info';
-        lineDiv.innerHTML = `<span class="log-time">${time}</span><span class="log-line-num">${lineNum}</span><span class="log-msg ${css}">${msg}</span>`;
-        con.appendChild(lineDiv);
+        const line = document.createElement('div');
+        line.className = 'log-line';
+        line.innerHTML = `<span class="log-sys">[${new Date().toLocaleTimeString()}]</span> ${msg}`;
+        con.appendChild(line);
         con.scrollTop = con.scrollHeight;
     }
 
-    function generateTimestampName() {
-        const now = new Date();
-        const ts = `${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}${String(now.getSeconds()).padStart(2,'0')}`;
-        const preset = document.getElementById('presetSelect').value || "exp";
-        return `${ts}-${preset}`;
-    }
-
-    // ==========================================
-    // 2. AUDIO ENGINE
-    // ==========================================
     function initAudio() {
         if (!audioCtx || audioCtx.state === 'closed') {
             audioCtx = new OriginalAudioContext();
             masterGain = audioCtx.createGain();
             analyser = audioCtx.createAnalyser();
-            analyser.fftSize = 2048;
+            analyser.fftSize = 1024;
             masterGain.connect(analyser);
             analyser.connect(audioCtx.destination);
             visualize();
@@ -331,39 +270,38 @@
     }
 
     function playAudio() {
-        stopAudio();
-        initAudio();
+        stopAudio(); initAudio();
         const code = document.getElementById('editor').value;
-        const userOut = audioCtx.createGain();
-        userOut.connect(masterGain);
+        const userOut = audioCtx.createGain(); userOut.connect(masterGain);
         try {
             const wrapper = `const destination = userOut; const getA = () => window.MACROS.A; const getB = () => window.MACROS.B; const getC = () => window.MACROS.C; ${code}`;
-            const run = new Function('ctx', 'userOut', 'window', wrapper);
-            run(audioCtx, userOut, window);
-            logToConsole("Kód běží.", "success");
-            document.getElementById('status').innerText = "RUNNING";
-            document.getElementById('status').style.color = "var(--success)";
-            document.getElementById('status').style.borderColor = "var(--success)";
-            document.getElementById('fnName').value = generateTimestampName();
-        } catch (e) { logToConsole(e.message, 'error', e); stopAudio(); }
+            new Function('ctx', 'userOut', 'window', wrapper)(audioCtx, userOut, window);
+            
+            const st = document.getElementById('status');
+            st.innerText = "RUNNING";
+            st.style.color = "#00e676";
+            st.style.borderColor = "#00e676";
+            st.style.boxShadow = "0 0 10px rgba(0,230,118,0.3)";
+            
+            document.getElementById('fnName').value = `${new Date().getHours()}${new Date().getMinutes()}-${document.getElementById('presetSelect').value || 'exp'}`;
+        } catch (e) { logToConsole(e.message); stopAudio(); }
     }
 
     function stopAudio() {
         _trackedIntervals.forEach(clearInterval); _trackedTimeouts.forEach(clearTimeout);
-        _trackedIntervals.length = 0; _trackedTimeouts.length = 0;
         _trackedContexts.forEach(ctx => { if (ctx.state !== 'closed') ctx.close(); });
-        _trackedContexts.length = 0;
         if (animationId) cancelAnimationFrame(animationId);
         if (audioCtx) audioCtx.close().then(() => { audioCtx = null; });
-        document.getElementById('status').innerText = "STOPPED";
-        document.getElementById('status').style.color = "#666";
-        document.getElementById('status').style.borderColor = "#333";
-        document.getElementById('vuL').style.height = '0%';
-        document.getElementById('vuR').style.height = '0%';
+        
+        const st = document.getElementById('status');
+        st.innerText = "STOPPED";
+        st.style.color = "#666";
+        st.style.borderColor = "#333";
+        st.style.boxShadow = "none";
     }
 
     // ==========================================
-    // 3. VIZUALIZACE (Lab & Bio Monitor)
+    // VIZUALIZACE (Fix: Color variable)
     // ==========================================
     function visualize() {
         const canvas = document.getElementById('visualizer');
@@ -373,31 +311,45 @@
         const timeArray = new Uint8Array(bufferLen);
 
         function draw() {
-            if (!audioCtx || audioCtx.state === 'closed') return;
+            if (!audioCtx) return;
             animationId = requestAnimationFrame(draw);
+            canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight;
             analyser.getByteFrequencyData(dataArray);
             analyser.getByteTimeDomainData(timeArray);
 
-            let sum = 0;
-            for(let i=0; i<bufferLen; i++) { let x = (timeArray[i]-128)/128; sum += x*x; }
-            let rms = Math.sqrt(sum/bufferLen);
-            const vuH = Math.min(100, rms*400) + '%';
-            document.getElementById('vuL').style.height = vuH;
-            document.getElementById('vuR').style.height = vuH;
+            let bass = 0; for(let i=0; i<10; i++) bass += dataArray[i]; bass /= 10;
+            let rms = 0; for(let i=0; i<bufferLen; i++) { let x=(timeArray[i]-128)/128; rms+=x*x; }
+            rms = Math.sqrt(rms/bufferLen);
+            document.getElementById('vuL').style.height = document.getElementById('vuR').style.height = Math.min(100, rms*400) + '%';
 
             ctx.fillStyle = '#000'; ctx.fillRect(0,0,canvas.width, canvas.height);
-            if (vizMode === 'bar') {
-                let barWidth = (canvas.width / bufferLen) * 2.5; let x = 0;
+
+            if (vizMode === 'radial') {
+                const centerX = canvas.width / 2, centerY = canvas.height / 2;
+                const baseRadius = 40 + (bass / 4);
+                ctx.shadowBlur = bass / 5; ctx.shadowColor = '#00e5ff';
+                for (let i = 0; i < bufferLen; i += 2) {
+                    const angle = (i / bufferLen) * Math.PI * 2;
+                    const h = (dataArray[i] / 255) * 60;
+                    const x1 = centerX + Math.cos(angle) * baseRadius;
+                    const y1 = centerY + Math.sin(angle) * baseRadius;
+                    const x2 = centerX + Math.cos(angle) * (baseRadius + h);
+                    const y2 = centerY + Math.sin(angle) * (baseRadius + h);
+                    ctx.strokeStyle = `rgb(${dataArray[i]}, 100, 255)`;
+                    ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+                }
+            } else if (vizMode === 'bar') {
+                let bw = (canvas.width / bufferLen) * 2.5, x = 0;
                 for(let i=0; i<bufferLen; i++) {
                     let h = (dataArray[i]/255) * canvas.height;
                     ctx.fillStyle = `rgb(${h+50}, 50, ${255-h})`;
-                    ctx.fillRect(x, canvas.height-h, barWidth, h); x += barWidth + 1;
+                    ctx.fillRect(x, canvas.height-h, bw, h); x += bw + 1;
                 }
             } else {
                 ctx.lineWidth = 2; ctx.strokeStyle = '#00e5ff'; ctx.beginPath();
-                let sw = canvas.width / bufferLen; let x = 0;
+                let sw = canvas.width / bufferLen, x = 0;
                 for(let i=0; i<bufferLen; i++) {
-                    let v = timeArray[i]/128.0; let y = v * canvas.height/2;
+                    let v = timeArray[i]/128.0, y = v * canvas.height/2;
                     if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); x += sw;
                 }
                 ctx.stroke();
@@ -408,29 +360,18 @@
 
     function drawBioMonitor() {
         const canvas = document.getElementById('bp-canvas');
-        if(!canvas) return;
         const ctx = canvas.getContext('2d');
-        
         function animate() {
             bpAnimationId = requestAnimationFrame(animate);
-            if(canvas.width !== canvas.clientWidth) {
-                canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight;
-                bpData = [];
-            }
+            canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight;
             if (!audioCtx) { 
-                ctx.clearRect(0,0,canvas.width, canvas.height);
-                ctx.strokeStyle = '#333'; ctx.beginPath(); ctx.moveTo(0,canvas.height/2); ctx.lineTo(canvas.width,canvas.height/2); ctx.stroke();
+                ctx.strokeStyle = '#333'; ctx.beginPath(); ctx.moveTo(0,canvas.height/2); ctx.lineTo(canvas.width,canvas.height/2); ctx.stroke(); 
                 return; 
             }
             let rms = parseFloat(document.getElementById('vuL').style.height) || 0;
-            let speed = 0.08 + (rms * 0.005);
-            let amplitude = 2 + (rms * 0.15);
-            let centerY = canvas.height / 2;
-            let targetY = centerY - (Math.sin(Date.now() * speed) * amplitude);
-            if(Math.sin(Date.now() * speed) > 0.85) targetY -= 6;
-            bpData.push(targetY);
-            if (bpData.length > canvas.width) bpData.shift(); 
-            ctx.clearRect(0,0,canvas.width, canvas.height);
+            let targetY = (canvas.height/2) - (Math.sin(Date.now()*0.01) * (rms*0.2));
+            if(Math.sin(Date.now()*0.01) > 0.8) targetY -= 5;
+            bpData.push(targetY); if (bpData.length > canvas.width) bpData.shift();
             ctx.strokeStyle = '#00e676'; ctx.lineWidth = 1.5; ctx.beginPath();
             for(let i=0; i<bpData.length; i++) { if(i===0) ctx.moveTo(i, bpData[i]); else ctx.lineTo(i, bpData[i]); }
             ctx.stroke();
@@ -438,58 +379,36 @@
         animate();
     }
 
-    // ==========================================
-    // 4. CLOUD INTERACTION
-    // ==========================================
     async function cloudLogin() {
         const input = document.getElementById('passwordInput').value;
         const err = document.getElementById('login-error');
-        const btn = document.getElementById('loginBtn');
-        if (!input) return; err.innerText = "Ověřuji..."; btn.disabled = true;
+        if (!input) return; err.innerText = "Ověřuji...";
         try {
-            const res = await fetch(SHEETS_URL, {
-                method: 'POST', mode: 'cors', redirect: 'follow',
-                body: JSON.stringify({ action: "login", password: input }),
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' }
-            });
+            const res = await fetch(SHEETS_URL, { method: 'POST', body: JSON.stringify({ action: "login", password: input }) });
             const data = await res.json();
-            if (data.status === 'success') {
-                document.body.classList.add('logged-in');
-                sessionStorage.setItem('cloudAuth', 'true');
-                loadFromSheets();
-            } else { err.innerText = "Nesprávné heslo."; btn.disabled = false; }
-        } catch (e) { err.innerText = "Chyba komunikace."; btn.disabled = false; }
+            if (data.status === 'success') { document.body.classList.add('logged-in'); loadFromSheets(); }
+            else { err.innerText = "Nesprávné heslo."; }
+        } catch (e) { err.innerText = "Chyba připojení."; }
     }
 
     async function saveToSheets() {
-        const code = document.getElementById('editor').value;
-        const name = document.getElementById('fnName').value || "exp";
-        try {
-            await fetch(SHEETS_URL, { method: 'POST', body: JSON.stringify({ action: "save", name, code }) });
-            logToConsole("Uloženo!", "success"); loadFromSheets();
-        } catch(e) { logToConsole("Chyba uložení", "error"); }
+        const code = document.getElementById('editor').value, name = document.getElementById('fnName').value;
+        await fetch(SHEETS_URL, { method: 'POST', body: JSON.stringify({ action: "save", name, code }) });
+        logToConsole("Uloženo do cloudu.");
     }
 
     async function loadFromSheets() {
-        try {
-            const res = await fetch(SHEETS_URL); const data = await res.json();
-            const lib = document.getElementById('library'); lib.innerHTML = "";
-            data.reverse().forEach(item => {
-                let el = document.createElement('div'); el.className = 'lib-item';
-                el.innerHTML = `<strong>${item.name}</strong>`;
-                el.onclick = () => { document.getElementById('editor').value = item.code; document.getElementById('fnName').value = item.name; };
-                lib.appendChild(el);
-            });
-        } catch(e) {}
+        const res = await fetch(SHEETS_URL); const data = await res.json();
+        const lib = document.getElementById('library'); lib.innerHTML = "";
+        data.reverse().forEach(item => {
+            let el = document.createElement('div'); el.className = 'lib-item'; el.innerHTML = `<strong>${item.name}</strong>`;
+            el.onclick = () => { document.getElementById('editor').value = item.code; document.getElementById('fnName').value = item.name; };
+            lib.appendChild(el);
+        });
     }
 
-    if (sessionStorage.getItem('cloudAuth') === 'true') document.body.classList.add('logged-in');
-
-    // ==========================================
-    // 5. PRESETS (The Restored Library)
-    // ==========================================
     const PRESETS = {
-        macro: `// --- MAKRO TEST (Restored) ---
+        macro: `// --- MAKRO TEST ---
 const osc = ctx.createOscillator();
 const gain = ctx.createGain();
 osc.type = 'sawtooth';
@@ -502,10 +421,9 @@ setInterval(() => {
   gain.gain.setTargetAtTime(getB(), ctx.currentTime, 0.05);
 }, 50);`,
 
-        zen: `// --- ZEN MISA (Restored) ---
+        zen: `// --- ZEN MISA ---
 const freq = 200 + getA(); 
 const t = ctx.currentTime;
-
 const addLayer = (f, gain, decay, detune = 0) => {
     const osc = ctx.createOscillator();
     const g = ctx.createGain();
@@ -519,14 +437,10 @@ const addLayer = (f, gain, decay, detune = 0) => {
     osc.start(t);
     osc.stop(t + decay);
 };
+addLayer(freq, 0.2, 5); addLayer(freq * 2, 0.1, 4); addLayer(freq * 3.01, 0.05, 3);
+addLayer(freq * 4.45, 0.03, 2); addLayer(freq * 0.5, 0.15, 6, Math.sin(t)*2);`,
 
-addLayer(freq, 0.2, 5);
-addLayer(freq * 2, 0.1, 4);
-addLayer(freq * 3.01, 0.05, 3);
-addLayer(freq * 4.45, 0.03, 2);
-addLayer(freq * 0.5, 0.15, 6, Math.sin(t)*2);`,
-
-        fire: `// --- TŘÍDA OHEŇ (Restored AudioSystem) ---
+        fire: `// --- TŘÍDA OHEŇ (Restored) ---
 class AudioSystem {
     constructor() {
         this.audioContext = ctx; 
@@ -534,7 +448,6 @@ class AudioSystem {
         this.masterGain.connect(destination);
         this.isPlaying = false;
         this.rumbleSrc = null;
-        this.updateLoop = null;
     }
     start() {
         if(this.isPlaying) return;
@@ -544,11 +457,6 @@ class AudioSystem {
             const volume = getA() / 1000; 
             this.masterGain.gain.setTargetAtTime(volume, this.audioContext.currentTime, 0.1);
         }, 50);
-    }
-    stop() {
-        if (this.updateLoop) clearInterval(this.updateLoop);
-        if (this.rumbleSrc) { this.rumbleSrc.stop(); this.rumbleSrc = null; }
-        this.isPlaying = false;
     }
     startRumble() {
         const buf = this.audioContext.createBuffer(1, 44100, 44100);
@@ -560,80 +468,72 @@ class AudioSystem {
         this.rumbleSrc = src;
     }
 }
-const fire = new AudioSystem();
-fire.start();`,
+new AudioSystem().start();`,
 
-        acid: `// --- ACID TEKNO ---\nconst osc = ctx.createOscillator(); const filter = ctx.createBiquadFilter();\nconst g = ctx.createGain(); osc.type = 'sawtooth';\nfilter.type = 'lowpass'; filter.Q.value = 15 + (getB()*20);\nosc.connect(filter); filter.connect(g); g.connect(destination);\nosc.start();\nsetInterval(() => {\n  osc.frequency.setTargetAtTime(50 + (getA()/4), ctx.currentTime, 0.1);\n  filter.frequency.setTargetAtTime(200 + (getA()*2), ctx.currentTime, 0.1);\n}, 50);`,
+        acid: `// --- ACID 303 ---
+const osc = ctx.createOscillator(); const filter = ctx.createBiquadFilter();
+const g = ctx.createGain(); osc.type = 'sawtooth';
+filter.type = 'lowpass'; filter.Q.value = 20;
+osc.connect(filter); filter.connect(g); g.connect(destination);
+osc.start();
+setInterval(() => {
+  osc.frequency.setTargetAtTime(50 + (getB()*2), ctx.currentTime, 0.1);
+  filter.frequency.setTargetAtTime(200 + getA(), ctx.currentTime, 0.1);
+}, 50);`,
 
-        nomad: `// --- NOMAD DRONE ---\nfor(let i=0; i<6; i++) {\n  const o = ctx.createOscillator(); const g = ctx.createGain();\n  o.type = 'sine'; o.frequency.value = 50 + (i*33.3);\n  g.gain.value = 0.05; o.connect(g); g.connect(destination); o.start();\n  setInterval(() => { o.detune.value = Math.sin(Date.now()*0.001 + i)*getA(); }, 50);\n}`,
+        nomad: `// --- NOMAD DRONE ---
+for(let i=0; i<6; i++) {
+  const o = ctx.createOscillator(); const g = ctx.createGain();
+  o.type = 'sine'; o.frequency.value = 40 + (i*20); g.gain.value = 0.1;
+  o.connect(g); g.connect(destination); o.start();
+  setInterval(() => { o.frequency.setTargetAtTime(40+(i*20)+getA(), ctx.currentTime, 1); }, 1000);
+}`,
 
-        psy: `// --- FM PSY-SQUELCH ---\nconst o = ctx.createOscillator(); const mod = ctx.createOscillator();\nconst mg = ctx.createGain(); mod.frequency.value = 20 + getB()*100;\nmg.gain.value = getA(); mod.connect(mg); mod.connect(o.frequency);\no.connect(destination); o.start(); mod.start();`,
+        psy: `// --- PSY FM SQUELCH ---
+const o = ctx.createOscillator(); const mod = ctx.createOscillator();
+const mg = ctx.createGain(); mod.frequency.value = 10; mg.gain.value = getA();
+mod.connect(o.frequency); o.connect(destination); o.start(); mod.start();`,
 
-        unstoppable: `// --- ☠️ UNSTOPPABLE FIRE (The Original Full Code) ---
+        unstoppable: `// --- ☠️ UNSTOPPABLE FIRE (Original Sidechain) ---
 (function() {
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    console.log("Krb se sidechain kompresí připraven. KLIKNI KAMKOLIV PRO SPUŠTĚNÍ.");
-
     const startFire = () => {
         if (audioCtx.state === 'suspended') audioCtx.resume();
-        const duration = 60;
-        const now = audioCtx.currentTime;
-
+        const duration = 60; const now = audioCtx.currentTime;
         const noiseBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 5, audioCtx.sampleRate);
         const nd = noiseBuffer.getChannelData(0);
         for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
-
         function makeDistortionCurve(amount) {
             const k = amount, n_samples = 44100, curve = new Float32Array(n_samples), deg = Math.PI / 180;
             for (let i = 0; i < n_samples; ++i) {
-                const x = i * 2 / n_samples - 1;
-                curve[i] = (3 + k) * x * 20 * deg / (Math.PI + k * Math.abs(x));
-            }
-            return curve;
+                const x = i * 2 / n_samples - 1; curve[i] = (3 + k) * x * 20 * deg / (Math.PI + k * Math.abs(x));
+            } return curve;
         }
-
-        const roar = audioCtx.createBufferSource();
-        roar.buffer = noiseBuffer; roar.loop = true;
-        
-        const roarF = audioCtx.createBiquadFilter();
-        roarF.type = 'lowpass'; roarF.frequency.value = 100; roarF.Q.value = 1.5;
-        
-        const distortion = audioCtx.createWaveShaper();
-        distortion.curve = makeDistortionCurve(15);
-        
-        const sidechainGain = audioCtx.createGain();
-        sidechainGain.gain.value = 1.0; 
-
-        const roarG = audioCtx.createGain();
-        roarG.gain.value = 0.15;
-
+        const roar = audioCtx.createBufferSource(); roar.buffer = noiseBuffer; roar.loop = true;
+        const roarF = audioCtx.createBiquadFilter(); roarF.type = 'lowpass'; roarF.frequency.value = 100;
+        const distortion = audioCtx.createWaveShaper(); distortion.curve = makeDistortionCurve(15);
+        const sidechainGain = audioCtx.createGain(); sidechainGain.gain.value = 1.0; 
+        const roarG = audioCtx.createGain(); roarG.gain.value = 0.15;
         roar.connect(roarF); roarF.connect(distortion); distortion.connect(sidechainGain); sidechainGain.connect(roarG);
-        roarG.connect(audioCtx.destination);
-        roar.start(now);
-
+        roarG.connect(audioCtx.destination); roar.start(now);
         function applySidechain(reduction, attack, release) {
             const t = audioCtx.currentTime;
-            sidechainGain.gain.cancelScheduledValues(t);
-            sidechainGain.gain.setValueAtTime(sidechainGain.gain.value, t);
+            sidechainGain.gain.cancelScheduledValues(t); sidechainGain.gain.setValueAtTime(sidechainGain.gain.value, t);
             sidechainGain.gain.linearRampToValueAtTime(1.0 - reduction, t + attack);
             sidechainGain.gain.exponentialRampToValueAtTime(1.0, t + attack + release);
         }
-
         function triggerLoudSnap() {
             if (audioCtx.currentTime > now + duration) return;
-            const t = audioCtx.currentTime;
             applySidechain(0.5, 0.005, 0.4);
-
             const s = audioCtx.createBufferSource(); s.buffer = noiseBuffer;
-            const f = audioCtx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 350; f.Q.value = 5;
-            const g = audioCtx.createGain();
-            g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.5, t + 0.002); g.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
-            s.connect(f); f.connect(g); g.connect(audioCtx.destination);
-            s.start(t);
+            const f = audioCtx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 350;
+            const g = audioCtx.createGain(); g.gain.setValueAtTime(0, audioCtx.currentTime);
+            g.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.002);
+            g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+            s.connect(f); f.connect(g); g.connect(audioCtx.destination); s.start();
             setTimeout(triggerLoudSnap, 2000 + Math.random() * 2000);
         }
-        triggerLoudSnap();
-        window.removeEventListener('click', startFire);
+        triggerLoudSnap(); window.removeEventListener('click', startFire);
     };
     window.addEventListener('click', startFire);
 })();`
@@ -641,12 +541,8 @@ fire.start();`,
 
     function loadPreset() {
         const val = document.getElementById('presetSelect').value;
-        if (PRESETS[val]) {
-            document.getElementById('editor').value = PRESETS[val];
-            document.getElementById('fnName').value = generateTimestampName();
-        }
+        if (PRESETS[val]) { document.getElementById('editor').value = PRESETS[val]; }
     }
 </script>
-
 </body>
 </html>
