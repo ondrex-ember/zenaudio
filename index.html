@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JOUZA AUDIO LAB v5.6 (Pulse Fix)</title>
+    <title>JOUZA AUDIO LAB v5.7 (Pulse Fix)</title>
 <style>
     :root { 
         --primary: #00e5ff; 
@@ -37,19 +37,27 @@
     }
     body.logged-in #app-content { opacity: 1; filter: none; }
 
-    /* HEADER - ULTRA WIDE FIX */
-    header { grid-column: 1 / -1; display: flex; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 5px; gap: 10px; }
-    h1 { margin: 0; font-weight: 200; letter-spacing: 3px; color: var(--primary); text-transform: uppercase; font-size: 1.2rem; width: 200px; flex-shrink: 0; overflow: hidden; white-space: nowrap; }
+    /* HEADER FIX */
+    header { grid-column: 1 / -1; display: flex; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 5px; gap: 15px; overflow: hidden; }
+    h1 { margin: 0; font-weight: 200; letter-spacing: 3px; color: var(--primary); text-transform: uppercase; font-size: 1.2rem; width: 200px; flex-shrink: 0; white-space: nowrap; }
     h1 span { font-weight: 700; color: #fff; }
 
-    .bio-monitor { display: flex; align-items: center; gap: 10px; flex-grow: 1; }
-    #bp-canvas { flex-grow: 1; height: 35px; border-radius: 4px; background: rgba(0,0,0,0.4); border: 1px solid #222; }
+    /* BIO MONITOR FIX */
+    .bio-monitor { display: flex; align-items: center; gap: 10px; flex-grow: 1; min-width: 0; /* Důležité pro flexbox */ }
     
-    /* STATUS SVĚTLO */
+    #bp-canvas { 
+        flex-grow: 1; 
+        height: 35px; 
+        border-radius: 4px; 
+        background: rgba(0,0,0,0.4); 
+        border: 1px solid #222; 
+        min-width: 0; /* Zabrání roztahování */
+    }
+    
     #status { 
         font-size: 0.7em; color: #666; font-family: monospace; font-weight: bold;
         border: 1px solid #333; padding: 4px 10px; border-radius: 4px; 
-        flex-shrink: 0; transition: 0.3s; text-transform: uppercase;
+        flex-shrink: 0; transition: 0.3s; text-transform: uppercase; white-space: nowrap;
     }
 
     .main-area { display: flex; flex-direction: column; gap: 10px; height: 100%; overflow: hidden; }
@@ -119,7 +127,7 @@
 <body>
 
     <div id="login-overlay">
-        <h2 style="color:var(--primary); font-weight:300; letter-spacing:4px; margin-bottom:30px;">JOUZA AUDIO LAB <span style="font-size:0.5em; opacity:0.5">v5.6</span></h2>
+        <h2 style="color:var(--primary); font-weight:300; letter-spacing:4px; margin-bottom:30px;">JOUZA AUDIO LAB <span style="font-size:0.5em; opacity:0.5">v5.7</span></h2>
         <input type="password" id="passwordInput" placeholder="•••••••">
         <button id="loginBtn" onclick="cloudLogin()">VSTOUPIT</button>
         <p id="login-error" style="color:var(--danger); height:20px; margin-top:15px;"></p>
@@ -167,7 +175,7 @@
             </div>
 
             <div id="consoleOutput">
-                <div class="log-line"><span class="log-sys">Jouza Lab v5.6 Pulse Monitor & Ultimate Presets Ready.</span></div>
+                <div class="log-line"><span class="log-sys">Jouza Lab v5.7 Pulse Fix Applied.</span></div>
             </div>
 
             <div class="controls">
@@ -300,9 +308,6 @@
         st.style.boxShadow = "none";
     }
 
-    // ==========================================
-    // VIZUALIZACE (Fix: Color variable)
-    // ==========================================
     function visualize() {
         const canvas = document.getElementById('visualizer');
         const ctx = canvas.getContext('2d');
@@ -358,20 +363,38 @@
         draw();
     }
 
+    // --- FIX: DRAW BIO MONITOR (Oddělené resize) ---
     function drawBioMonitor() {
         const canvas = document.getElementById('bp-canvas');
         const ctx = canvas.getContext('2d');
+        
+        // Nastavíme velikost hned na začátku
+        function resizeCanvas() {
+            canvas.width = canvas.clientWidth;
+            canvas.height = canvas.clientHeight;
+            bpData = []; // Reset dat, aby se křivka nenatáhla
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
         function animate() {
             bpAnimationId = requestAnimationFrame(animate);
-            canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight;
+            // ZDE BYL PROBLÉM: canvas.width = canvas.clientWidth; (Odstraněno)
+            
             if (!audioCtx) { 
+                ctx.clearRect(0,0,canvas.width, canvas.height);
                 ctx.strokeStyle = '#333'; ctx.beginPath(); ctx.moveTo(0,canvas.height/2); ctx.lineTo(canvas.width,canvas.height/2); ctx.stroke(); 
                 return; 
             }
+            
             let rms = parseFloat(document.getElementById('vuL').style.height) || 0;
             let targetY = (canvas.height/2) - (Math.sin(Date.now()*0.01) * (rms*0.2));
             if(Math.sin(Date.now()*0.01) > 0.8) targetY -= 5;
-            bpData.push(targetY); if (bpData.length > canvas.width) bpData.shift();
+            
+            bpData.push(targetY); 
+            if (bpData.length > canvas.width) bpData.shift();
+            
+            ctx.clearRect(0,0,canvas.width, canvas.height);
             ctx.strokeStyle = '#00e676'; ctx.lineWidth = 1.5; ctx.beginPath();
             for(let i=0; i<bpData.length; i++) { if(i===0) ctx.moveTo(i, bpData[i]); else ctx.lineTo(i, bpData[i]); }
             ctx.stroke();
