@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JOUZA AUDIO LAB v5.7 (Pulse Fix)</title>
+    <title>JOUZA AUDIO LAB v6.0 (Scribe Edition)</title>
 <style>
     :root { 
         --primary: #00e5ff; 
@@ -37,22 +37,13 @@
     }
     body.logged-in #app-content { opacity: 1; filter: none; }
 
-    /* HEADER FIX */
+    /* HEADER */
     header { grid-column: 1 / -1; display: flex; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 5px; gap: 15px; overflow: hidden; }
     h1 { margin: 0; font-weight: 200; letter-spacing: 3px; color: var(--primary); text-transform: uppercase; font-size: 1.2rem; width: 200px; flex-shrink: 0; white-space: nowrap; }
     h1 span { font-weight: 700; color: #fff; }
 
-    /* BIO MONITOR FIX */
-    .bio-monitor { display: flex; align-items: center; gap: 10px; flex-grow: 1; min-width: 0; /* Důležité pro flexbox */ }
-    
-    #bp-canvas { 
-        flex-grow: 1; 
-        height: 35px; 
-        border-radius: 4px; 
-        background: rgba(0,0,0,0.4); 
-        border: 1px solid #222; 
-        min-width: 0; /* Zabrání roztahování */
-    }
+    .bio-monitor { display: flex; align-items: center; gap: 10px; flex-grow: 1; min-width: 0; }
+    #bp-canvas { flex-grow: 1; height: 35px; border-radius: 4px; background: rgba(0,0,0,0.4); border: 1px solid #222; min-width: 0; }
     
     #status { 
         font-size: 0.7em; color: #666; font-family: monospace; font-weight: bold;
@@ -81,6 +72,16 @@
     .macro-row label { width: 10px; font-weight: bold; color: var(--primary); }
     .macro-row input { flex-grow: 1; accent-color: var(--primary); cursor: pointer; height: 4px; }
     .macro-val { width: 35px; text-align: right; font-family: monospace; color: #fff; }
+
+    /* INPUTS PANEL (NEW) */
+    .inputs-panel {
+        display: flex; gap: 10px; background: #111; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; align-items: center; flex-shrink: 0;
+    }
+    .inputs-panel select { background: #000; color: #aaa; border: 1px solid #333; padding: 5px; border-radius: 4px; outline: none; }
+    .inputs-panel button { padding: 5px 15px; font-size: 0.75em; }
+    .btn-scribe { background: #4a148c; border: 1px solid #7b1fa2; color: #fff; margin-left: auto; display: flex; align-items: center; gap: 5px; }
+    .btn-scribe.recording { background: #d50000; animation: pulse-rec 1s infinite; }
+    @keyframes pulse-rec { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
 
     .editor-container { 
         flex-grow: 1; display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: 6px; background: var(--code-bg); overflow: hidden; position: relative;
@@ -127,7 +128,7 @@
 <body>
 
     <div id="login-overlay">
-        <h2 style="color:var(--primary); font-weight:300; letter-spacing:4px; margin-bottom:30px;">JOUZA AUDIO LAB <span style="font-size:0.5em; opacity:0.5">v5.7</span></h2>
+        <h2 style="color:var(--primary); font-weight:300; letter-spacing:4px; margin-bottom:30px;">JOUZA AUDIO LAB <span style="font-size:0.5em; opacity:0.5">v6.0</span></h2>
         <input type="password" id="passwordInput" placeholder="•••••••">
         <button id="loginBtn" onclick="cloudLogin()">VSTOUPIT</button>
         <p id="login-error" style="color:var(--danger); height:20px; margin-top:15px;"></p>
@@ -169,13 +170,26 @@
                 </div>
             </div>
 
+            <div class="inputs-panel">
+                <select id="radioStation">
+                    <option value="https://ice1.somafm.com/dronezone-128-mp3">📻 SomaFM: Drone Zone</option>
+                    <option value="https://ice1.somafm.com/groovesalad-128-mp3">📻 SomaFM: Groove Salad</option>
+                    <option value="https://ice1.somafm.com/deepspaceone-128-mp3">📻 SomaFM: Deep Space One</option>
+                </select>
+                <button id="btnRadio" onclick="toggleRadio()">▶ PLAY RÁDIO</button>
+                <button id="btnMic" onclick="toggleMic()">🎤 MIC INPUT</button>
+                <button id="btnScribe" class="btn-scribe" onclick="captureScribe()">
+                    <div style="width:8px; height:8px; background:#fff; border-radius:50%;"></div> CAPTURE 2s ASSET
+                </button>
+            </div>
+
             <div class="editor-container">
-                <div class="editor-header"><span>JAVASCRIPT EDITOR</span><span>Use: ctx, destination, getA(), getB(), getC()</span></div>
-                <textarea id="editor" spellcheck="false" placeholder="// Napiš kód a stiskni RUN..."></textarea>
+                <div class="editor-header"><span>JAVASCRIPT EDITOR</span><span>Use: ASSETS, getBass(), getMids(), getHighs()</span></div>
+                <textarea id="editor" spellcheck="false" placeholder="// JOUZA v6 - Napiš kód a stiskni RUN..."></textarea>
             </div>
 
             <div id="consoleOutput">
-                <div class="log-line"><span class="log-sys">Jouza Lab v5.7 Pulse Fix Applied.</span></div>
+                <div class="log-line"><span class="log-sys">Jouza Lab v6.0 Scribe & Inputs Initialized.</span></div>
             </div>
 
             <div class="controls">
@@ -191,11 +205,12 @@
 
         <div class="side-panel">
             <div class="panel-box" style="flex-shrink: 0;">
-                <div class="panel-header">PRESETY</div>
+                <div class="panel-header">PRESETY (V6 Edition)</div>
                 <select id="presetSelect" onchange="loadPreset()" size="8" style="height: 160px;">
-                    <option value="macro">🎛️ Test Maker (Osc)</option>
+                    <option value="audio_reactor">📻 Audio Reactor (NEW)</option>
+                    <option value="grain_scribe">✂️ Grain Scribe (NEW)</option>
                     <option value="zen">🧘 Zen Mísa (Ambient)</option>
-                    <option value="fire">🔥 Class Oheň (AudioSystem)</option>
+                    <option value="fire">🔥 Class Oheň</option>
                     <option value="acid">🧬 ACID Tekno (303)</option>
                     <option value="nomad">⛺ NOMAD Drone</option>
                     <option value="psy">👽 PSY FM Squelch</option>
@@ -212,17 +227,19 @@
             <div class="footer-links">
                 <a href="https://www.ember-pa.cz/" target="_blank">🔥 Ember PA</a> | <a href="https://open.spotify.com/user/ondrex?si=bac785a31b564159" target="_blank">🎵 Spotify</a> | <a href="https://ondrex-ember.github.io/doupe-2/" target="_blank">👾 Doupě 2</a> | <a href="https://ondrex-ember.github.io/tech-1000-piv/" target="_blank">🍺</a>
             </div>
-            <div>Vyvíjeno s <span style="color:#e91e63">❤️</span> v Novém Boru. <strong>By Ondrex</strong> & <strong>Claude</strong> (feat. <strong>Woschlina</strong>)</div>
+            <div>Vyvíjeno s <span style="color:#e91e63">❤️</span> v Novém Boru. <strong>By Ondrex</strong> & <strong>Claude/Gemini</strong></div>
         </footer>
     </div>
 
 <script>
     // ==========================================
-    // 0. DEEP CLEAN & TRACKING
+    // 0. DEEP CLEAN & TRACKING (UPDATED FOR V6)
     // ==========================================
     const _trackedContexts = [], _trackedTimeouts = [], _trackedIntervals = [];
     let bpData = []; 
+    let userOutGlobal = null; // Zde žije výstup uživatelského kódu
 
+    // Hlídač cizích kontextů (Unstoppable fire)
     const OriginalAudioContext = window.AudioContext || window.webkitAudioContext;
     window.AudioContext = window.webkitAudioContext = function(...args) {
         const ctx = new OriginalAudioContext(...args);
@@ -241,9 +258,17 @@
     }
 
     const SHEETS_URL = "https://script.google.com/macros/s/AKfycbwe8O3qqe-C0yLm08EDFZGqHkEIdswZ6DCAuTd4rSMM90P5bp1HZCGw4G9jg7gU0W2I/exec"; 
-    let audioCtx, masterGain, analyser, animationId, bpAnimationId;
+    let audioCtx, inputMixGain, masterGain, analyser, animationId, bpAnimationId;
     let vizMode = 'wave';
+    
+    // Globální objekty pro V6
     window.MACROS = { A: 50, B: 0.5, C: 0.5 };
+    window.AUDIO_DATA = { bass: 0, mids: 0, highs: 0 };
+    window.ASSETS = { noise: null, hum: null, captured: null };
+
+    // Input zdroje
+    let radioAudio, radioSource;
+    let micStream, micSource;
 
     function updateMacros() {
         window.MACROS.A = parseFloat(document.getElementById('macA').value);
@@ -258,56 +283,202 @@
         const con = document.getElementById('consoleOutput');
         const line = document.createElement('div');
         line.className = 'log-line';
-        line.innerHTML = `<span class="log-sys">[${new Date().toLocaleTimeString()}]</span> ${msg}`;
+        let color = type === 'error' ? '#ff4081' : type === 'success' ? '#00e676' : '#00e5ff';
+        line.innerHTML = `<span class="log-sys" style="color:${color}">[${new Date().toLocaleTimeString()}]</span> ${msg}`;
         con.appendChild(line);
         con.scrollTop = con.scrollHeight;
     }
 
+    // Generování základních buněk DNA
+    function generateBaseAssets() {
+        let sr = audioCtx.sampleRate;
+        // Noise
+        let nBuf = audioCtx.createBuffer(1, sr, sr);
+        let nData = nBuf.getChannelData(0);
+        for(let i=0; i<sr; i++) nData[i] = Math.random()*2-1;
+        window.ASSETS.noise = nBuf;
+        // Hum (50Hz)
+        let hBuf = audioCtx.createBuffer(1, sr, sr);
+        let hData = hBuf.getChannelData(0);
+        for(let i=0; i<sr; i++) hData[i] = Math.sin((i/sr)*Math.PI*2*50);
+        window.ASSETS.hum = hBuf;
+    }
+
+    // V6 AUDIO INIT (Persistent Context)
     function initAudio() {
         if (!audioCtx || audioCtx.state === 'closed') {
             audioCtx = new OriginalAudioContext();
+            
+            // Sběrnice všech vstupů (Kód + Rádio + Mic)
+            inputMixGain = audioCtx.createGain(); 
+            
             masterGain = audioCtx.createGain();
             analyser = audioCtx.createAnalyser();
             analyser.fftSize = 1024;
+            
+            inputMixGain.connect(masterGain);
             masterGain.connect(analyser);
             analyser.connect(audioCtx.destination);
+            
+            // Scribe Recorder Node (chytá vše z inputMixu před Master hlasitostí)
+            scribeNode = audioCtx.createScriptProcessor(4096, 1, 1);
+            scribeNode.onaudioprocess = processScribeAudio;
+            inputMixGain.connect(scribeNode);
+            scribeNode.connect(audioCtx.destination);
+
+            generateBaseAssets();
             visualize();
             drawBioMonitor();
         }
         masterGain.gain.value = document.getElementById('masterVolume').value;
+        if(audioCtx.state === 'suspended') audioCtx.resume();
     }
 
+    // ==========================================
+    // V6 INPUTS: RADIO & MIC
+    // ==========================================
+    function toggleRadio() {
+        initAudio();
+        const btn = document.getElementById('btnRadio');
+        if (radioAudio && !radioAudio.paused) {
+            radioAudio.pause();
+            btn.innerText = "▶ PLAY RÁDIO";
+            btn.style.color = "white";
+        } else {
+            if (!radioAudio) {
+                radioAudio = new Audio();
+                radioAudio.crossOrigin = "anonymous"; // DŮLEŽITÉ PRO SOMAFM
+                radioSource = audioCtx.createMediaElementSource(radioAudio);
+                radioSource.connect(inputMixGain);
+            }
+            radioAudio.src = document.getElementById('radioStation').value;
+            radioAudio.play().then(() => {
+                btn.innerText = "⏹ STOP RÁDIO";
+                btn.style.color = "var(--primary)";
+                logToConsole("Připojeno k SomaFM streamu", "success");
+            }).catch(e => logToConsole("Rádio blokováno (CORS/Politika prohlížeče)", "error"));
+        }
+    }
+
+    async function toggleMic() {
+        initAudio();
+        const btn = document.getElementById('btnMic');
+        if (micSource) {
+            micSource.disconnect(); micSource = null;
+            micStream.getTracks().forEach(t=>t.stop());
+            btn.style.color = "white";
+            logToConsole("Mikrofon vypnut.");
+        } else {
+            try {
+                micStream = await navigator.mediaDevices.getUserMedia({audio: true});
+                micSource = audioCtx.createMediaStreamSource(micStream);
+                micSource.connect(inputMixGain);
+                btn.style.color = "#ff4081";
+                logToConsole("Mikrofon aktivní! Lze s ním pracovat v kódu.", "success");
+            } catch(e) { logToConsole("Mikrofon odepřen.", "error"); }
+        }
+    }
+
+    // ==========================================
+    // V6 SCRIBE BUFFER
+    // ==========================================
+    let isCapturing = false;
+    let captureChunks = [];
+    let scribeNode;
+
+    function processScribeAudio(e) {
+        if(!isCapturing) return;
+        captureChunks.push(new Float32Array(e.inputBuffer.getChannelData(0)));
+    }
+
+    function captureScribe() {
+        initAudio();
+        if(isCapturing) return;
+        isCapturing = true;
+        captureChunks = [];
+        const btn = document.getElementById('btnScribe');
+        btn.classList.add('recording');
+        logToConsole("Vytvářím 2s Scribe-Buffer z mixu...", "sys");
+
+        setTimeout(() => {
+            isCapturing = false;
+            btn.classList.remove('recording');
+            
+            // Složení kousků do AudioBufferu
+            let len = captureChunks.reduce((acc, val) => acc + val.length, 0);
+            let buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
+            let data = buf.getChannelData(0);
+            let offset = 0;
+            for(let c of captureChunks) { data.set(c, offset); offset += c.length; }
+            
+            window.ASSETS.captured = buf;
+            logToConsole("Capture hotov! V kódu použij: ASSETS.captured", "success");
+        }, 2000);
+    }
+
+    // ==========================================
+    // V6 PLAY & STOP (Smart Clean)
+    // ==========================================
     function playAudio() {
-        stopAudio(); initAudio();
+        stopAudio(); // Kills user code, leaves Radio running
+        initAudio();
+        
+        userOutGlobal = audioCtx.createGain();
+        userOutGlobal.connect(inputMixGain);
+        
         const code = document.getElementById('editor').value;
-        const userOut = audioCtx.createGain(); userOut.connect(masterGain);
         try {
-            const wrapper = `const destination = userOut; const getA = () => window.MACROS.A; const getB = () => window.MACROS.B; const getC = () => window.MACROS.C; ${code}`;
-            new Function('ctx', 'userOut', 'window', wrapper)(audioCtx, userOut, window);
+            // Wrapper nyní nabízí nové V6 funkce
+            const wrapper = `
+                const destination = userOutGlobal; 
+                const getA = () => window.MACROS.A; 
+                const getB = () => window.MACROS.B; 
+                const getC = () => window.MACROS.C;
+                const getBass = () => window.AUDIO_DATA.bass;
+                const getMids = () => window.AUDIO_DATA.mids;
+                const getHighs = () => window.AUDIO_DATA.highs;
+                const ASSETS = window.ASSETS;
+                ${code}
+            `;
+            const originalSetTimeout = window.setTimeout;
+            const originalSetInterval = window.setInterval;
+            window.setTimeout = function(fn, delay) { const id = originalSetTimeout(fn, delay); _trackedTimeouts.push(id); return id; };
+            window.setInterval = function(fn, delay) { const id = originalSetInterval(fn, delay); _trackedIntervals.push(id); return id; };
+
+            new Function('ctx', 'userOutGlobal', 'window', wrapper)(audioCtx, userOutGlobal, window);
             
             const st = document.getElementById('status');
-            st.innerText = "RUNNING";
+            st.innerText = "CODE RUNNING";
             st.style.color = "#00e676";
             st.style.borderColor = "#00e676";
-            st.style.boxShadow = "0 0 10px rgba(0,230,118,0.3)";
             
             document.getElementById('fnName').value = `${new Date().getHours()}${new Date().getMinutes()}-${document.getElementById('presetSelect').value || 'exp'}`;
-        } catch (e) { logToConsole(e.message); stopAudio(); }
+        } catch (e) { logToConsole(e.message, 'error'); stopAudio(); }
     }
 
     function stopAudio() {
         _trackedIntervals.forEach(clearInterval); _trackedTimeouts.forEach(clearTimeout);
+        _trackedIntervals.length = 0; _trackedTimeouts.length = 0;
+        
+        // Zničíme jen cizí kontexty
         _trackedContexts.forEach(ctx => { if (ctx.state !== 'closed') ctx.close(); });
-        if (animationId) cancelAnimationFrame(animationId);
-        if (audioCtx) audioCtx.close().then(() => { audioCtx = null; });
+        _trackedContexts.length = 0;
+        
+        // Odpojíme uživatelský kód od hlavního mixu
+        if(userOutGlobal) {
+            userOutGlobal.disconnect();
+            userOutGlobal = null;
+        }
         
         const st = document.getElementById('status');
-        st.innerText = "STOPPED";
+        st.innerText = "CODE STOPPED";
         st.style.color = "#666";
         st.style.borderColor = "#333";
-        st.style.boxShadow = "none";
     }
 
+    // ==========================================
+    // VIZUALIZACE & ANALÝZA (Audio-to-Script)
+    // ==========================================
     function visualize() {
         const canvas = document.getElementById('visualizer');
         const ctx = canvas.getContext('2d');
@@ -322,7 +493,17 @@
             analyser.getByteFrequencyData(dataArray);
             analyser.getByteTimeDomainData(timeArray);
 
-            let bass = 0; for(let i=0; i<10; i++) bass += dataArray[i]; bass /= 10;
+            // V6 ANALÝZA PÁSEM PRO AUDIO-TO-SCRIPT
+            let b=0, m=0, h=0;
+            for(let i=0; i<10; i++) b+=dataArray[i]; // Bass
+            for(let i=10; i<100; i++) m+=dataArray[i]; // Mids
+            for(let i=100; i<500; i++) h+=dataArray[i]; // Highs
+            
+            window.AUDIO_DATA.bass = (b/10) / 255;
+            window.AUDIO_DATA.mids = (m/90) / 255;
+            window.AUDIO_DATA.highs = (h/400) / 255;
+
+            // RMS for VU Meter
             let rms = 0; for(let i=0; i<bufferLen; i++) { let x=(timeArray[i]-128)/128; rms+=x*x; }
             rms = Math.sqrt(rms/bufferLen);
             document.getElementById('vuL').style.height = document.getElementById('vuR').style.height = Math.min(100, rms*400) + '%';
@@ -331,8 +512,8 @@
 
             if (vizMode === 'radial') {
                 const centerX = canvas.width / 2, centerY = canvas.height / 2;
-                const baseRadius = 40 + (bass / 4);
-                ctx.shadowBlur = bass / 5; ctx.shadowColor = '#00e5ff';
+                const baseRadius = 40 + (b / 10 / 4);
+                ctx.shadowBlur = window.AUDIO_DATA.bass * 50; ctx.shadowColor = '#00e5ff';
                 for (let i = 0; i < bufferLen; i += 2) {
                     const angle = (i / bufferLen) * Math.PI * 2;
                     const h = (dataArray[i] / 255) * 60;
@@ -346,9 +527,9 @@
             } else if (vizMode === 'bar') {
                 let bw = (canvas.width / bufferLen) * 2.5, x = 0;
                 for(let i=0; i<bufferLen; i++) {
-                    let h = (dataArray[i]/255) * canvas.height;
-                    ctx.fillStyle = `rgb(${h+50}, 50, ${255-h})`;
-                    ctx.fillRect(x, canvas.height-h, bw, h); x += bw + 1;
+                    let height = (dataArray[i]/255) * canvas.height;
+                    ctx.fillStyle = `rgb(${height+50}, 50, ${255-height})`;
+                    ctx.fillRect(x, canvas.height-height, bw, height); x += bw + 1;
                 }
             } else {
                 ctx.lineWidth = 2; ctx.strokeStyle = '#00e5ff'; ctx.beginPath();
@@ -363,36 +544,22 @@
         draw();
     }
 
-    // --- FIX: DRAW BIO MONITOR (Oddělené resize) ---
     function drawBioMonitor() {
         const canvas = document.getElementById('bp-canvas');
         const ctx = canvas.getContext('2d');
-        
-        // Nastavíme velikost hned na začátku
-        function resizeCanvas() {
-            canvas.width = canvas.clientWidth;
-            canvas.height = canvas.clientHeight;
-            bpData = []; // Reset dat, aby se křivka nenatáhla
-        }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
+        function resizeCanvas() { canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight; bpData = []; }
+        window.addEventListener('resize', resizeCanvas); resizeCanvas();
 
         function animate() {
             bpAnimationId = requestAnimationFrame(animate);
-            // ZDE BYL PROBLÉM: canvas.width = canvas.clientWidth; (Odstraněno)
+            if (!audioCtx) return;
             
-            if (!audioCtx) { 
-                ctx.clearRect(0,0,canvas.width, canvas.height);
-                ctx.strokeStyle = '#333'; ctx.beginPath(); ctx.moveTo(0,canvas.height/2); ctx.lineTo(canvas.width,canvas.height/2); ctx.stroke(); 
-                return; 
-            }
+            // Křivka teď reaguje na V6 basy
+            let bassEnergy = window.AUDIO_DATA.bass || 0;
+            let targetY = (canvas.height/2) - (Math.sin(Date.now()*0.01) * (bassEnergy*20));
+            if(Math.sin(Date.now()*0.01) > 0.8) targetY -= 10 * bassEnergy; // Tep
             
-            let rms = parseFloat(document.getElementById('vuL').style.height) || 0;
-            let targetY = (canvas.height/2) - (Math.sin(Date.now()*0.01) * (rms*0.2));
-            if(Math.sin(Date.now()*0.01) > 0.8) targetY -= 5;
-            
-            bpData.push(targetY); 
-            if (bpData.length > canvas.width) bpData.shift();
+            bpData.push(targetY); if (bpData.length > canvas.width) bpData.shift();
             
             ctx.clearRect(0,0,canvas.width, canvas.height);
             ctx.strokeStyle = '#00e676'; ctx.lineWidth = 1.5; ctx.beginPath();
@@ -402,24 +569,18 @@
         animate();
     }
 
+    // CLOUD
     async function cloudLogin() {
         const input = document.getElementById('passwordInput').value;
-        const err = document.getElementById('login-error');
-        if (!input) return; err.innerText = "Ověřuji...";
-        try {
-            const res = await fetch(SHEETS_URL, { method: 'POST', body: JSON.stringify({ action: "login", password: input }) });
-            const data = await res.json();
-            if (data.status === 'success') { document.body.classList.add('logged-in'); loadFromSheets(); }
-            else { err.innerText = "Nesprávné heslo."; }
-        } catch (e) { err.innerText = "Chyba připojení."; }
+        const res = await fetch(SHEETS_URL, { method: 'POST', body: JSON.stringify({ action: "login", password: input }) });
+        const data = await res.json();
+        if (data.status === 'success') { document.body.classList.add('logged-in'); loadFromSheets(); }
     }
-
     async function saveToSheets() {
         const code = document.getElementById('editor').value, name = document.getElementById('fnName').value;
         await fetch(SHEETS_URL, { method: 'POST', body: JSON.stringify({ action: "save", name, code }) });
-        logToConsole("Uloženo do cloudu.");
+        logToConsole("Uloženo!");
     }
-
     async function loadFromSheets() {
         const res = await fetch(SHEETS_URL); const data = await res.json();
         const lib = document.getElementById('library'); lib.innerHTML = "";
@@ -431,135 +592,65 @@
     }
 
     const PRESETS = {
-        macro: `// --- MAKRO TEST ---
+        audio_reactor: `// --- AUDIO REACTOR (V6) ---
+// Zapni Rádio (SomaFM) a sleduj, jak kód reaguje!
 const osc = ctx.createOscillator();
+const filter = ctx.createBiquadFilter();
 const gain = ctx.createGain();
+
 osc.type = 'sawtooth';
-osc.connect(gain); gain.connect(destination);
+filter.type = 'lowpass';
+osc.connect(filter); filter.connect(gain); gain.connect(destination);
 osc.start();
 
 setInterval(() => {
-  // A = Frekvence, B = Hlasitost
-  osc.frequency.setTargetAtTime(getA(), ctx.currentTime, 0.05);
-  gain.gain.setTargetAtTime(getB(), ctx.currentTime, 0.05);
-}, 50);`,
+  // getBass() vrací 0-1 podle toho, jak rádio basuje
+  const radioBass = getBass(); 
+  
+  // Měníme frekvenci filtru do rytmu rádia!
+  filter.frequency.value = 100 + (radioBass * 2000) * getA();
+  
+  // Oscilátor hraje hluboko
+  osc.frequency.value = 50 + (getB() * 100);
+}, 20);`,
 
-        zen: `// --- ZEN MISA ---
-const freq = 200 + getA(); 
-const t = ctx.currentTime;
-const addLayer = (f, gain, decay, detune = 0) => {
-    const osc = ctx.createOscillator();
-    const g = ctx.createGain();
-    osc.frequency.value = f + detune;
-    osc.type = 'sine';
-    g.gain.setValueAtTime(0, t);
-    g.gain.linearRampToValueAtTime(gain, t + 0.05);
-    g.gain.exponentialRampToValueAtTime(0.00001, t + decay);
-    osc.connect(g);
-    g.connect(destination);
-    osc.start(t);
-    osc.stop(t + decay);
-};
-addLayer(freq, 0.2, 5); addLayer(freq * 2, 0.1, 4); addLayer(freq * 3.01, 0.05, 3);
-addLayer(freq * 4.45, 0.03, 2); addLayer(freq * 0.5, 0.15, 6, Math.sin(t)*2);`,
+        grain_scribe: `// --- GRAIN SCRIBE (V6) ---
+// 1. Pusť rádio nebo mluv do mikráku
+// 2. Klikni na CAPTURE 2s ASSET
+// 3. Stiskni RUN a poslouchej granulární destrukci!
 
-        fire: `// --- TŘÍDA OHEŇ (Restored) ---
-class AudioSystem {
-    constructor() {
-        this.audioContext = ctx; 
-        this.masterGain = this.audioContext.createGain();
-        this.masterGain.connect(destination);
-        this.isPlaying = false;
-        this.rumbleSrc = null;
-    }
-    start() {
-        if(this.isPlaying) return;
-        this.isPlaying = true;
-        this.startRumble();
-        this.updateLoop = setInterval(() => {
-            const volume = getA() / 1000; 
-            this.masterGain.gain.setTargetAtTime(volume, this.audioContext.currentTime, 0.1);
-        }, 50);
-    }
-    startRumble() {
-        const buf = this.audioContext.createBuffer(1, 44100, 44100);
-        const data = buf.getChannelData(0);
-        for(let i=0; i<44100; i++) data[i] = Math.random() * 2 - 1;
-        const src = this.audioContext.createBufferSource();
-        src.buffer = buf; src.loop = true;
-        src.connect(this.masterGain); src.start();
-        this.rumbleSrc = src;
-    }
-}
-new AudioSystem().start();`,
-
-        acid: `// --- ACID 303 ---
-const osc = ctx.createOscillator(); const filter = ctx.createBiquadFilter();
-const g = ctx.createGain(); osc.type = 'sawtooth';
-filter.type = 'lowpass'; filter.Q.value = 20;
-osc.connect(filter); filter.connect(g); g.connect(destination);
-osc.start();
-setInterval(() => {
-  osc.frequency.setTargetAtTime(50 + (getB()*2), ctx.currentTime, 0.1);
-  filter.frequency.setTargetAtTime(200 + getA(), ctx.currentTime, 0.1);
-}, 50);`,
-
-        nomad: `// --- NOMAD DRONE ---
-for(let i=0; i<6; i++) {
-  const o = ctx.createOscillator(); const g = ctx.createGain();
-  o.type = 'sine'; o.frequency.value = 40 + (i*20); g.gain.value = 0.1;
-  o.connect(g); g.connect(destination); o.start();
-  setInterval(() => { o.frequency.setTargetAtTime(40+(i*20)+getA(), ctx.currentTime, 1); }, 1000);
+if (!ASSETS.captured) {
+    console.error("Nejprve musíš nahrát ASSET pomocí tlačítka CAPTURE!");
+} else {
+    setInterval(() => {
+        // Vytvoříme ústřižek (Grain)
+        const src = ctx.createBufferSource();
+        const g = ctx.createGain();
+        src.buffer = ASSETS.captured;
+        
+        // Náhodný startovní bod v bufferu
+        const offset = Math.random() * 1.5; 
+        // Délka zrna podle makra C
+        const grainLength = 0.01 + getC(); 
+        
+        g.gain.setValueAtTime(0, ctx.currentTime);
+        g.gain.linearRampToValueAtTime(1, ctx.currentTime + grainLength/2);
+        g.gain.linearRampToValueAtTime(0, ctx.currentTime + grainLength);
+        
+        // Pitch/Rychlost podle makra B
+        src.playbackRate.value = 0.5 + (getB() * 2);
+        
+        src.connect(g); g.connect(destination);
+        src.start(ctx.currentTime, offset, grainLength);
+    }, 50 + (getA()*2)); // Hustota granulace
 }`,
 
-        psy: `// --- PSY FM SQUELCH ---
-const o = ctx.createOscillator(); const mod = ctx.createOscillator();
-const mg = ctx.createGain(); mod.frequency.value = 10; mg.gain.value = getA();
-mod.connect(o.frequency); o.connect(destination); o.start(); mod.start();`,
-
-        unstoppable: `// --- ☠️ UNSTOPPABLE FIRE (Original Sidechain) ---
-(function() {
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const startFire = () => {
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        const duration = 60; const now = audioCtx.currentTime;
-        const noiseBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 5, audioCtx.sampleRate);
-        const nd = noiseBuffer.getChannelData(0);
-        for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
-        function makeDistortionCurve(amount) {
-            const k = amount, n_samples = 44100, curve = new Float32Array(n_samples), deg = Math.PI / 180;
-            for (let i = 0; i < n_samples; ++i) {
-                const x = i * 2 / n_samples - 1; curve[i] = (3 + k) * x * 20 * deg / (Math.PI + k * Math.abs(x));
-            } return curve;
-        }
-        const roar = audioCtx.createBufferSource(); roar.buffer = noiseBuffer; roar.loop = true;
-        const roarF = audioCtx.createBiquadFilter(); roarF.type = 'lowpass'; roarF.frequency.value = 100;
-        const distortion = audioCtx.createWaveShaper(); distortion.curve = makeDistortionCurve(15);
-        const sidechainGain = audioCtx.createGain(); sidechainGain.gain.value = 1.0; 
-        const roarG = audioCtx.createGain(); roarG.gain.value = 0.15;
-        roar.connect(roarF); roarF.connect(distortion); distortion.connect(sidechainGain); sidechainGain.connect(roarG);
-        roarG.connect(audioCtx.destination); roar.start(now);
-        function applySidechain(reduction, attack, release) {
-            const t = audioCtx.currentTime;
-            sidechainGain.gain.cancelScheduledValues(t); sidechainGain.gain.setValueAtTime(sidechainGain.gain.value, t);
-            sidechainGain.gain.linearRampToValueAtTime(1.0 - reduction, t + attack);
-            sidechainGain.gain.exponentialRampToValueAtTime(1.0, t + attack + release);
-        }
-        function triggerLoudSnap() {
-            if (audioCtx.currentTime > now + duration) return;
-            applySidechain(0.5, 0.005, 0.4);
-            const s = audioCtx.createBufferSource(); s.buffer = noiseBuffer;
-            const f = audioCtx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 350;
-            const g = audioCtx.createGain(); g.gain.setValueAtTime(0, audioCtx.currentTime);
-            g.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.002);
-            g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
-            s.connect(f); f.connect(g); g.connect(audioCtx.destination); s.start();
-            setTimeout(triggerLoudSnap, 2000 + Math.random() * 2000);
-        }
-        triggerLoudSnap(); window.removeEventListener('click', startFire);
-    };
-    window.addEventListener('click', startFire);
-})();`
+        zen: `// --- ZEN MISA ---\nconst freq = 200 + getA(); const t = ctx.currentTime;\nconst addLayer = (f, gv, d) => {\n  const osc = ctx.createOscillator(); const g = ctx.createGain();\n  osc.frequency.value = f; osc.type = 'sine';\n  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(gv, t+0.05); g.gain.exponentialRampToValueAtTime(0.0001, t+d);\n  osc.connect(g); g.connect(destination); osc.start(t); osc.stop(t+d);\n};\naddLayer(freq, 0.2, 5); addLayer(freq*1.5, 0.1, 4);`,
+        fire: `// --- CLASS OHEŇ ---\nclass AudioSystem {\n  constructor() {\n    this.g = ctx.createGain(); this.g.connect(destination);\n    this.loop = setInterval(() => this.snap(), 100);\n  }\n  snap() {\n    const s = ctx.createBufferSource(); const b = ctx.createBuffer(1, 441, 44100);\n    for(let i=0; i<441; i++) b.getChannelData(0)[i] = Math.random()*2-1;\n    s.buffer = b; s.connect(this.g); s.start();\n  }\n}\nnew AudioSystem().start();`,
+        acid: `// --- ACID 303 ---\nconst osc = ctx.createOscillator(); const filter = ctx.createBiquadFilter();\nconst g = ctx.createGain(); osc.type = 'sawtooth'; filter.type = 'lowpass'; filter.Q.value = 20;\nosc.connect(filter); filter.connect(g); g.connect(destination); osc.start();\nsetInterval(() => {\n  osc.frequency.value = 50 + (getB()*2); filter.frequency.value = 200 + getA();\n}, 100);`,
+        nomad: `// --- NOMAD DRONE ---\nfor(let i=0; i<6; i++) {\n  const o = ctx.createOscillator(); const g = ctx.createGain();\n  o.type = 'sine'; o.frequency.value = 40 + (i*20); g.gain.value = 0.1;\n  o.connect(g); g.connect(destination); o.start();\n  setInterval(() => { o.frequency.setTargetAtTime(40+(i*20)+getA(), ctx.currentTime, 1); }, 1000);\n}`,
+        psy: `// --- PSY SQUELCH ---\nconst o = ctx.createOscillator(); const mod = ctx.createOscillator();\nconst mg = ctx.createGain(); mod.frequency.value = 10; mg.gain.value = getA();\nmod.connect(o.frequency); o.connect(destination); o.start(); mod.start();`,
+        unstoppable: `// --- ☠️ UNSTOPPABLE FIRE ---\n(function() {\n  const c = new AudioContext(); const g = c.createGain(); g.connect(c.destination);\n  setInterval(() => {\n    const s = c.createBufferSource(); const b = c.createBuffer(1, 100, 44100);\n    s.buffer = b; s.connect(g); s.start();\n  }, 50);\n})();`
     };
 
     function loadPreset() {
