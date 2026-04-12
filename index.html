@@ -417,9 +417,9 @@
     }
 
     // ==========================================
-    // V6 PLAY & STOP (Smart Clean)
+    // V6 PLAY & STOP (Smart Clean & Proxy Integration)
     // ==========================================
-    // ==========================================
+ // ==========================================
     // V6 PLAY & STOP (Smart Clean & Proxy Integration)
     // ==========================================
     function playAudio() {
@@ -430,12 +430,11 @@
         userOutGlobal.connect(inputMixGain);
 
         // 🪄 MAGIE PRO EXTERNÍ TŘÍDY: 
-        // Vytvoříme iluzi samostatného AudioContextu. Pokud se externí kód pokusí 
-        // poslat zvuk do 'destination' nebo zavřít kontext, my to přesměrujeme.
+        // Vytvoříme iluzi samostatného AudioContextu.
         const proxyCtx = new Proxy(audioCtx, {
             get: function(target, prop) {
-                if (prop === 'destination') return userOutGlobal; // Zvuk jde do Labu, ne rovnou do repra
-                if (prop === 'close' || prop === 'suspend') return async () => {}; // Zakážeme kódu vypnout hlavní systém
+                if (prop === 'destination') return userOutGlobal; 
+                if (prop === 'close' || prop === 'suspend') return async () => {}; 
                 
                 let value = target[prop];
                 if (typeof value === 'function') return value.bind(target);
@@ -447,11 +446,9 @@
         try {
             // Upravený wrapper
             const wrapper = `
-                // Zachycení standardních volání pro vytvoření nového Web Audio API
                 const AudioContext = function() { return proxyCtx; };
                 const webkitAudioContext = AudioContext;
                 
-                // Zachycení volání "new window.AudioContext()"
                 const window = new Proxy(globalWindow, {
                     get: function(target, prop) {
                         if (prop === 'AudioContext' || prop === 'webkitAudioContext') return AudioContext;
@@ -474,13 +471,13 @@
                 ${code}
             `;
             
-            // Trackování intervalů pro KILL ALL (zůstává beze změny)
+            // Trackování intervalů pro KILL ALL
             const originalSetTimeout = window.setTimeout;
             const originalSetInterval = window.setInterval;
             window.setTimeout = function(fn, delay) { const id = originalSetTimeout(fn, delay); _trackedTimeouts.push(id); return id; };
             window.setInterval = function(fn, delay) { const id = originalSetInterval(fn, delay); _trackedIntervals.push(id); return id; };
 
-            // Spuštění kódu: předáváme proxyCtx jako 'proxyCtx' a skutečný window jako 'globalWindow'
+            // Spuštění kódu
             new Function('proxyCtx', 'userOutGlobal', 'globalWindow', wrapper)(proxyCtx, userOutGlobal, window);
             
             const st = document.getElementById('status');
@@ -488,7 +485,8 @@
             st.style.color = "#00e676";
             st.style.borderColor = "#00e676";
             
-            document.getElementById('fnName').value = \`\${new Date().getHours()}\${new Date().getMinutes()}-\${document.getElementById('presetSelect').value || 'exp'}\`;
+            // OPRAVENÝ ŘÁDEK - čistý template literal bez escapování
+            document.getElementById('fnName').value = `${new Date().getHours()}${new Date().getMinutes()}-${document.getElementById('presetSelect').value || 'exp'}`;
         } catch (e) { logToConsole(e.message, 'error'); stopAudio(); }
     }
 
