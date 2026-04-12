@@ -417,9 +417,8 @@
     }
 
     // ==========================================
-    // V6 PLAY & STOP (Smart Clean & Proxy Integration)
+    // V6 PLAY & STOP (Smart Clean + AUTO-RUNNER)
     // ==========================================
-
     function playAudio() {
         stopAudio(); // Kills user code, leaves Radio running
         initAudio();
@@ -427,8 +426,7 @@
         userOutGlobal = audioCtx.createGain();
         userOutGlobal.connect(inputMixGain);
 
-        // 🪄 MAGIE PRO EXTERNÍ TŘÍDY: 
-        // Vytvoříme iluzi samostatného AudioContextu.
+        // 🪄 PROXY MAGIE (držíme kontext v Labu)
         const proxyCtx = new Proxy(audioCtx, {
             get: function(target, prop) {
                 if (prop === 'destination') return userOutGlobal; 
@@ -440,7 +438,32 @@
             }
         });
         
-        const code = document.getElementById('editor').value;
+        let code = document.getElementById('editor').value;
+
+        // 🧠 JOUZA AUTO-RUNNER LOGIC 🧠
+        // Hledáme, jestli kód obsahuje definici třídy (např. "class RainSystem")
+        const classMatch = code.match(/class\s+([a-zA-Z0-9_]+)/);
+        if (classMatch) {
+            const className = classMatch[1];
+            // Pokud kód třídu definuje, ale nikde ji nevolá (chybí "new RainSystem")
+            if (!code.includes('new ' + className)) {
+                logToConsole(`Auto-Runner: Nalezena třída [${className}]. Spouštím automaticky...`, "sys");
+                
+                // Nástroj sám potichu připíše spouštěcí příkazy na konec tvého kódu
+                code += `\n
+                try {
+                    const _autoInstance = new ${className}();
+                    // Zkusíme nejběžnější spouštěcí funkce
+                    if (typeof _autoInstance.start === 'function') _autoInstance.start();
+                    else if (typeof _autoInstance.play === 'function') _autoInstance.play();
+                    else if (typeof _autoInstance.init === 'function') _autoInstance.init();
+                } catch(e) {
+                    console.error("Auto-Runner selhal:", e);
+                }
+                `;
+            }
+        }
+
         try {
             // Upravený wrapper
             const wrapper = `
@@ -457,7 +480,6 @@
                 const destination = userOutGlobal; 
                 const ctx = proxyCtx; 
                 
-                // Zachování Jouza Lab Maker
                 const getA = () => globalWindow.MACROS.A; 
                 const getB = () => globalWindow.MACROS.B; 
                 const getC = () => globalWindow.MACROS.C;
@@ -469,7 +491,7 @@
                 ${code}
             `;
             
-            // Trackování intervalů pro KILL ALL
+            // Trackování intervalů
             const originalSetTimeout = window.setTimeout;
             const originalSetInterval = window.setInterval;
             window.setTimeout = function(fn, delay) { const id = originalSetTimeout(fn, delay); _trackedTimeouts.push(id); return id; };
@@ -483,7 +505,6 @@
             st.style.color = "#00e676";
             st.style.borderColor = "#00e676";
             
-            // OPRAVENÝ ŘÁDEK - čistý template literal bez escapování
             document.getElementById('fnName').value = `${new Date().getHours()}${new Date().getMinutes()}-${document.getElementById('presetSelect').value || 'exp'}`;
         } catch (e) { logToConsole(e.message, 'error'); stopAudio(); }
     }
