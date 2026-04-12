@@ -419,40 +419,76 @@
     // ==========================================
     // V6 PLAY & STOP (Smart Clean)
     // ==========================================
+    // ==========================================
+    // V6 PLAY & STOP (Smart Clean & Proxy Integration)
+    // ==========================================
     function playAudio() {
         stopAudio(); // Kills user code, leaves Radio running
         initAudio();
         
         userOutGlobal = audioCtx.createGain();
         userOutGlobal.connect(inputMixGain);
+
+        // 🪄 MAGIE PRO EXTERNÍ TŘÍDY: 
+        // Vytvoříme iluzi samostatného AudioContextu. Pokud se externí kód pokusí 
+        // poslat zvuk do 'destination' nebo zavřít kontext, my to přesměrujeme.
+        const proxyCtx = new Proxy(audioCtx, {
+            get: function(target, prop) {
+                if (prop === 'destination') return userOutGlobal; // Zvuk jde do Labu, ne rovnou do repra
+                if (prop === 'close' || prop === 'suspend') return async () => {}; // Zakážeme kódu vypnout hlavní systém
+                
+                let value = target[prop];
+                if (typeof value === 'function') return value.bind(target);
+                return value;
+            }
+        });
         
         const code = document.getElementById('editor').value;
         try {
-            // Wrapper nyní nabízí nové V6 funkce
+            // Upravený wrapper
             const wrapper = `
+                // Zachycení standardních volání pro vytvoření nového Web Audio API
+                const AudioContext = function() { return proxyCtx; };
+                const webkitAudioContext = AudioContext;
+                
+                // Zachycení volání "new window.AudioContext()"
+                const window = new Proxy(globalWindow, {
+                    get: function(target, prop) {
+                        if (prop === 'AudioContext' || prop === 'webkitAudioContext') return AudioContext;
+                        return target[prop];
+                    }
+                });
+
                 const destination = userOutGlobal; 
-                const getA = () => window.MACROS.A; 
-                const getB = () => window.MACROS.B; 
-                const getC = () => window.MACROS.C;
-                const getBass = () => window.AUDIO_DATA.bass;
-                const getMids = () => window.AUDIO_DATA.mids;
-                const getHighs = () => window.AUDIO_DATA.highs;
-                const ASSETS = window.ASSETS;
+                const ctx = proxyCtx; 
+                
+                // Zachování Jouza Lab Maker
+                const getA = () => globalWindow.MACROS.A; 
+                const getB = () => globalWindow.MACROS.B; 
+                const getC = () => globalWindow.MACROS.C;
+                const getBass = () => globalWindow.AUDIO_DATA.bass;
+                const getMids = () => globalWindow.AUDIO_DATA.mids;
+                const getHighs = () => globalWindow.AUDIO_DATA.highs;
+                const ASSETS = globalWindow.ASSETS;
+                
                 ${code}
             `;
+            
+            // Trackování intervalů pro KILL ALL (zůstává beze změny)
             const originalSetTimeout = window.setTimeout;
             const originalSetInterval = window.setInterval;
             window.setTimeout = function(fn, delay) { const id = originalSetTimeout(fn, delay); _trackedTimeouts.push(id); return id; };
             window.setInterval = function(fn, delay) { const id = originalSetInterval(fn, delay); _trackedIntervals.push(id); return id; };
 
-            new Function('ctx', 'userOutGlobal', 'window', wrapper)(audioCtx, userOutGlobal, window);
+            // Spuštění kódu: předáváme proxyCtx jako 'proxyCtx' a skutečný window jako 'globalWindow'
+            new Function('proxyCtx', 'userOutGlobal', 'globalWindow', wrapper)(proxyCtx, userOutGlobal, window);
             
             const st = document.getElementById('status');
             st.innerText = "CODE RUNNING";
             st.style.color = "#00e676";
             st.style.borderColor = "#00e676";
             
-            document.getElementById('fnName').value = `${new Date().getHours()}${new Date().getMinutes()}-${document.getElementById('presetSelect').value || 'exp'}`;
+            document.getElementById('fnName').value = \`\${new Date().getHours()}\${new Date().getMinutes()}-\${document.getElementById('presetSelect').value || 'exp'}\`;
         } catch (e) { logToConsole(e.message, 'error'); stopAudio(); }
     }
 
