@@ -416,8 +416,8 @@
         }, 2000);
     }
 
-    // ==========================================
-    // V6 PLAY & STOP (Smart Clean + AUTO-RUNNER)
+   // ==========================================
+    // V6 PLAY & STOP (Smart Clean + AUTO-RUNNER 2.0)
     // ==========================================
     function playAudio() {
         stopAudio(); // Kills user code, leaves Radio running
@@ -426,7 +426,7 @@
         userOutGlobal = audioCtx.createGain();
         userOutGlobal.connect(inputMixGain);
 
-        // 🪄 PROXY MAGIE (držíme kontext v Labu)
+        // 🪄 PROXY MAGIE
         const proxyCtx = new Proxy(audioCtx, {
             get: function(target, prop) {
                 if (prop === 'destination') return userOutGlobal; 
@@ -440,20 +440,21 @@
         
         let code = document.getElementById('editor').value;
 
-        // 🧠 JOUZA AUTO-RUNNER LOGIC 🧠
-        // Hledáme, jestli kód obsahuje definici třídy (např. "class RainSystem")
-        const classMatch = code.match(/class\s+([a-zA-Z0-9_]+)/);
+        // 🧠 JOUZA AUTO-RUNNER LOGIC 2.0 🧠
+        // Nejprve si vytvoříme verzi kódu bez komentářů, aby nás nezmátly nápovědy!
+        const codeWithoutComments = code.replace(/\/\/.*|\/\*[\s\S]*?\*\//g, '');
+
+        // Hledáme třídu v čistém kódu
+        const classMatch = codeWithoutComments.match(/class\s+([a-zA-Z0-9_]+)/);
         if (classMatch) {
             const className = classMatch[1];
-            // Pokud kód třídu definuje, ale nikde ji nevolá (chybí "new RainSystem")
-            if (!code.includes('new ' + className)) {
+            // Ptáme se, zda je třída spuštěna v ČISTÉM kódu
+            if (!codeWithoutComments.includes('new ' + className)) {
                 logToConsole(`Auto-Runner: Nalezena třída [${className}]. Spouštím automaticky...`, "sys");
                 
-                // Nástroj sám potichu připíše spouštěcí příkazy na konec tvého kódu
                 code += `\n
                 try {
                     const _autoInstance = new ${className}();
-                    // Zkusíme nejběžnější spouštěcí funkce
                     if (typeof _autoInstance.start === 'function') _autoInstance.start();
                     else if (typeof _autoInstance.play === 'function') _autoInstance.play();
                     else if (typeof _autoInstance.init === 'function') _autoInstance.init();
@@ -465,7 +466,7 @@
         }
 
         try {
-            // Upravený wrapper
+            // Wrapper
             const wrapper = `
                 const AudioContext = function() { return proxyCtx; };
                 const webkitAudioContext = AudioContext;
@@ -491,13 +492,11 @@
                 ${code}
             `;
             
-            // Trackování intervalů
             const originalSetTimeout = window.setTimeout;
             const originalSetInterval = window.setInterval;
             window.setTimeout = function(fn, delay) { const id = originalSetTimeout(fn, delay); _trackedTimeouts.push(id); return id; };
             window.setInterval = function(fn, delay) { const id = originalSetInterval(fn, delay); _trackedIntervals.push(id); return id; };
 
-            // Spuštění kódu
             new Function('proxyCtx', 'userOutGlobal', 'globalWindow', wrapper)(proxyCtx, userOutGlobal, window);
             
             const st = document.getElementById('status');
