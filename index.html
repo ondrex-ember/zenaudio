@@ -416,7 +416,10 @@
         }, 2000);
     }
 
-   // ==========================================
+    // ==========================================
+    // V6 PLAY & STOP (Smart Clean)
+    // ==========================================
+    // ==========================================
     // V6 PLAY & STOP (Smart Clean + AUTO-RUNNER 2.0)
     // ==========================================
     function playAudio() {
@@ -426,7 +429,7 @@
         userOutGlobal = audioCtx.createGain();
         userOutGlobal.connect(inputMixGain);
 
-        // 🪄 PROXY MAGIE
+        // 🪄 PROXY MAGIE (Chrání hlavní kontext Labu před zavřením z externího kódu)
         const proxyCtx = new Proxy(audioCtx, {
             get: function(target, prop) {
                 if (prop === 'destination') return userOutGlobal; 
@@ -441,17 +444,17 @@
         let code = document.getElementById('editor').value;
 
         // 🧠 JOUZA AUTO-RUNNER LOGIC 2.0 🧠
-        // Nejprve si vytvoříme verzi kódu bez komentářů, aby nás nezmátly nápovědy!
+        // Odstraníme komentáře pro analýzu, aby nás nezmátly ukázky v textu
         const codeWithoutComments = code.replace(/\/\/.*|\/\*[\s\S]*?\*\//g, '');
 
-        // Hledáme třídu v čistém kódu
         const classMatch = codeWithoutComments.match(/class\s+([a-zA-Z0-9_]+)/);
         if (classMatch) {
             const className = classMatch[1];
-            // Ptáme se, zda je třída spuštěna v ČISTÉM kódu
+            // Pokud třída existuje, ale není spuštěna slovem "new"
             if (!codeWithoutComments.includes('new ' + className)) {
                 logToConsole(`Auto-Runner: Nalezena třída [${className}]. Spouštím automaticky...`, "sys");
                 
+                // Přidáme spouštěcí kód potichu na pozadí
                 code += `\n
                 try {
                     const _autoInstance = new ${className}();
@@ -466,7 +469,7 @@
         }
 
         try {
-            // Wrapper
+            // Wrapper nyní nabízí nové V6 funkce + bezpečný kontext
             const wrapper = `
                 const AudioContext = function() { return proxyCtx; };
                 const webkitAudioContext = AudioContext;
@@ -497,6 +500,7 @@
             window.setTimeout = function(fn, delay) { const id = originalSetTimeout(fn, delay); _trackedTimeouts.push(id); return id; };
             window.setInterval = function(fn, delay) { const id = originalSetInterval(fn, delay); _trackedIntervals.push(id); return id; };
 
+            // Odeslání kódu do pískoviště (sandbox)
             new Function('proxyCtx', 'userOutGlobal', 'globalWindow', wrapper)(proxyCtx, userOutGlobal, window);
             
             const st = document.getElementById('status');
@@ -504,6 +508,7 @@
             st.style.color = "#00e676";
             st.style.borderColor = "#00e676";
             
+            // Generování jména experimentu (pokud není zadáno ručně)
             document.getElementById('fnName').value = `${new Date().getHours()}${new Date().getMinutes()}-${document.getElementById('presetSelect').value || 'exp'}`;
         } catch (e) { logToConsole(e.message, 'error'); stopAudio(); }
     }
